@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/navigation/CustomTabBar.tsx (VERSÃO FINAL COM LEITURA OTIMIZADA)
 
 import React from 'react';
