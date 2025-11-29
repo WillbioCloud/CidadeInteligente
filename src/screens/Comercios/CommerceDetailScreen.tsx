@@ -1,15 +1,16 @@
-// src/screens/Comercios/CommerceDetailScreen.tsx (VERSÃO FINAL - ROTEADOR DE LAYOUTS)
+// src/screens/Comercios/CommerceDetailScreen.tsx (VERSÃO FINAL COM O NOVO 'ProductLayout')
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, SafeAreaView, TouchableOpacity, StyleSheet } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
-// Importa os novos componentes de layout
+// Importa os componentes de layout existentes e o novo
 import ModernLayout from './layouts/ModernLayout';
 import ClassicLayout from './layouts/ClassicLayout';
+import ProductLayout from './layouts/ProductLayout'; // 1. IMPORTAR O NOVO LAYOUT
 
 export default function CommerceDetailScreen({ route, navigation }) {
-  // Lógica de busca de dados permanece a mesma
+  // A lógica de busca de dados permanece a mesma
   const [commerce, setCommerce] = useState(route.params?.commerce || null);
   const [loading, setLoading] = useState(!route.params?.commerce);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +27,7 @@ export default function CommerceDetailScreen({ route, navigation }) {
         return;
       }
 
+      // A busca no Supabase agora pode trazer os novos campos (slogan, features, etc)
       const { data: c, error: dbError } = await supabase
         .from('comercios')
         .select('*')
@@ -34,7 +36,9 @@ export default function CommerceDetailScreen({ route, navigation }) {
 
       if (dbError) {
         setError("Não foi possível carregar os dados do comércio.");
+        setLoading(false);
       } else if (c) {
+        // O objeto formatado agora inclui todos os campos, novos e antigos
         const formattedData = {
           id: c.id,
           name: c.nome,
@@ -50,7 +54,14 @@ export default function CommerceDetailScreen({ route, navigation }) {
           city: 'S. A. do Descoberto - GO',
           rating: c.rating || 4.5,
           featured: c.featured || false,
-          layout_template: c.layout_template || 'moderno', // Pega o template do DB
+          layout_template: c.layout_template || 'moderno',
+          // Novos campos para o ProductLayout
+          slogan: c.slogan,
+          secondary_slogan: c.secondary_slogan,
+          video_url: c.video_url,
+          store_url: c.store_url,
+          features: c.features || [],
+          product_list: c.product_list || [],
         };
         setCommerce(formattedData);
       }
@@ -79,9 +90,14 @@ export default function CommerceDetailScreen({ route, navigation }) {
   switch (commerce.layout_template) {
     case 'classico':
       return <ClassicLayout commerce={commerce} navigation={navigation} />;
+    
+    // 2. ADICIONAR O CASE PARA O NOVO LAYOUT
+    case 'produto':
+      return <ProductLayout commerce={commerce} navigation={navigation} />;
+
     case 'moderno':
     default:
-      // O 'moderno' é o padrão caso a coluna esteja nula
+      // O 'moderno' continua sendo o padrão caso a coluna esteja nula ou com valor desconhecido
       return <ModernLayout commerce={commerce} navigation={navigation} />;
   }
 }

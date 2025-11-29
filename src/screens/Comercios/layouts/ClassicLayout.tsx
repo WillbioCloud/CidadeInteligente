@@ -100,7 +100,7 @@ export default function ClassicLayout({ commerce, navigation }) {
 
 // Estilos
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
+  container: { flex: 1, backgroundColor: '#F8F9FA', paddingBottom: 100, marginBottom: 75 },
   backButton: { position: 'absolute', top: 50, left: 16, zIndex: 10 },
   header: { alignItems: 'center', padding: 24, backgroundColor: 'white' },
   logo: { width: 120, height: 120, borderRadius: 60, marginBottom: 16, borderWidth: 4, borderColor: '#E5E7EB' },

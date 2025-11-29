@@ -1,16 +1,16 @@
-// src/components/sections/ResidentFeatures.tsx (VERSÃO FINAL COM "VER TODOS")
+// src/components/sections/ResidentFeatures.tsx
 
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Bus, Calendar, Heart, MapPin, Clock, ChevronRight, Building } from '../Icons';
 
-// Array com as 6 funcionalidades principais que aparecerão na Home
 const features = [
   { id: 'Transporte', icon: Bus, title: 'Horários de Ônibus', screen: 'Transport' },
   { id: 'ReservarQuadras', icon: Calendar, title: 'Reservar Quadras', screen: 'CourtScheduling' },
   { id: 'Saude', icon: Heart, title: 'Saúde e Bem-estar', screen: 'Health' },
-  { id: 'MapaLocal', icon: MapPin, title: 'Mapa Local', screen: 'Mapa' },
+  // AQUI ESTÁ A MUDANÇA: Navega para a rota "Mapa" que adicionamos no HomeStack
+  { id: 'MapaLocal', icon: MapPin, title: 'Mapa Local', screen: 'Mapa' }, 
   { id: 'Empreendimentos', icon: Building, title: 'Empreendimentos da FBZ', screen: 'Empreendimentos' },
   { id: 'Funcionamento', icon: Clock, title: 'Horário de Funcionamento', screen: 'OperatingHours' },
 ];
@@ -18,19 +18,17 @@ const features = [
 export const ResidentFeatures = () => {
   const navigation = useNavigation();
 
-  const handlePress = (screen, params) => {
-    navigation.navigate(screen, params);
+  const handlePress = (screen) => {
+    navigation.navigate(screen);
   };
 
   return (
     <View style={styles.section}>
-      {/* --- HEADER ATUALIZADO --- */}
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Funcionalidades</Text>
           <Text style={styles.subtitle}>Tudo que você precisa no seu dia a dia</Text>
         </View>
-        {/* --- BOTÃO "VER TODOS" ADICIONADO --- */}
         <TouchableOpacity style={styles.seeAllButton} onPress={() => navigation.navigate('More')}>
           <Text style={styles.seeAllText}>Ver todos</Text>
           <ChevronRight size={16} color="#339949ff" />
@@ -41,7 +39,7 @@ export const ResidentFeatures = () => {
         {features.map(feature => {
           const Icon = feature.icon;
           return (
-            <TouchableOpacity key={feature.id} style={styles.card} onPress={() => handlePress(feature.screen, feature.params)}>
+            <TouchableOpacity key={feature.id} style={styles.card} onPress={() => handlePress(feature.screen)}>
               <Icon size={28} color="#339949ff" />
               <Text style={styles.cardText}>{feature.title}</Text>
             </TouchableOpacity>

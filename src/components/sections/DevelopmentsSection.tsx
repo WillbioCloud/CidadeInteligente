@@ -1,16 +1,45 @@
-// src/components/sections/DevelopmentsSection.tsx (VERSÃO FINAL COM TAGS)
-
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Animated,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ALL_LOTEAMENTOS } from '../../data/loteamentos.data';
-import { PlayCircle, ShoppingCart } from '../Icons'; // Usando ícones para os botões
+import { PlayCircle, ShoppingCart } from '../Icons';
 
-// Card individual para cada loteamento
 const DevelopmentCard = ({ loteamento }) => {
   const navigation = useNavigation();
+  const isDestaque = loteamento.name.toLowerCase().includes('cidade inteligente');
 
-  return (
+  const rotation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isDestaque) {
+      Animated.loop(
+        Animated.timing(rotation, {
+          toValue: 1,
+          duration: 4000,
+          useNativeDriver: false, // false porque interpolamos cor
+        })
+      ).start();
+    }
+  }, []);
+
+  const spin = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  const borderColor = rotation.interpolate({
+    inputRange: [0, 0.33, 0.66, 1],
+    outputRange: ['#ff0000', '#00ff00', '#0000ff', '#ff0000'], // RGB
+  });
+
+  const cardContent = (
     <View style={styles.devCard}>
       <View style={styles.logoContainer}>
         <Image source={loteamento.logo} style={styles.devLogo} />
@@ -18,7 +47,6 @@ const DevelopmentCard = ({ loteamento }) => {
       <Text style={styles.devName}>{loteamento.name}</Text>
       <Text style={styles.devTagline}>{loteamento.tagline}</Text>
 
-      {/* --- SEÇÃO DE TAGS ADICIONADA --- */}
       <View style={styles.highlightsContainer}>
         {loteamento.highlights.map((highlight, index) => (
           <View key={index} style={styles.highlightChip}>
@@ -28,7 +56,7 @@ const DevelopmentCard = ({ loteamento }) => {
       </View>
 
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.buttonSecondary}
           onPress={() => navigation.navigate('LoteamentoMedia', { loteamento })}
         >
@@ -42,15 +70,33 @@ const DevelopmentCard = ({ loteamento }) => {
       </View>
     </View>
   );
+
+  if (!isDestaque) return cardContent;
+
+  return (
+    <View style={styles.destaqueWrapper}>
+      <Animated.View
+        style={[
+          styles.destaqueFundoAnimado,
+          {
+            transform: [{ rotate: spin }],
+            borderColor: borderColor,
+          },
+        ]}
+      />
+      <View style={styles.destaqueCardContainer}>
+        {cardContent}
+      </View>
+    </View>
+  );
 };
 
-// Componente principal da seção
 export const DevelopmentsSection = () => {
   return (
     <View style={styles.section}>
       <Text style={styles.title}>Nossos Empreendimentos</Text>
       <View style={styles.listContainer}>
-        {ALL_LOTEAMENTOS.map(lote => (
+        {ALL_LOTEAMENTOS.map((lote) => (
           <DevelopmentCard key={lote.id} loteamento={lote} />
         ))}
       </View>
@@ -59,14 +105,14 @@ export const DevelopmentsSection = () => {
 };
 
 const styles = StyleSheet.create({
-  section: { 
+  section: {
     marginBottom: 24,
     paddingHorizontal: 4,
   },
-  title: { 
-      fontSize: 20, 
-      fontWeight: 'bold', 
-      marginBottom: 16,
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
   },
   listContainer: {
     gap: 14,
@@ -86,7 +132,7 @@ const styles = StyleSheet.create({
     padding: 8,
     paddingHorizontal: 96,
     borderRadius: 12,
-    backgroundColor: '#F8FAFC'
+    backgroundColor: '#F8FAFC',
   },
   devLogo: {
     width: 150,
@@ -105,7 +151,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     minHeight: 40,
   },
-  // --- NOVOS ESTILOS PARA AS TAGS ---
   highlightsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -114,17 +159,16 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   highlightChip: {
-    backgroundColor: '#EEF2FF', // Azul claro suave
+    backgroundColor: '#EEF2FF',
     borderRadius: 6,
     paddingVertical: 3,
     paddingHorizontal: 10,
   },
   highlightText: {
-    color: '#4338CA', // Azul mais escuro
+    color: '#4338CA',
     fontSize: 12,
     fontWeight: '500',
   },
-  // --- FIM DOS NOVOS ESTILOS ---
   buttonsContainer: {
     flexDirection: 'row',
     gap: 12,
@@ -160,5 +204,26 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+
+  // Destaque RGB girando
+  destaqueWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 12,
+  },
+  destaqueFundoAnimado: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    borderWidth: 5,
+    opacity: 0.6,
+  },
+  destaqueCardContainer: {
+    padding: 3,
+    borderRadius: 24,
+    backgroundColor: 'white',
+    elevation: 5,
   },
 });

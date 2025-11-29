@@ -1,4 +1,4 @@
-// src/navigation/AppRouter.tsx (VERSÃO FINAL COM "PORTÃO" DE HIDRATAÇÃO)
+// src/navigation/AppRouter.tsx
 
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -6,13 +6,17 @@ import { useUserStore } from '../hooks/useUserStore';
 import { supabase } from '../lib/supabase';
 import MainNavigator from './MainNavigator';
 import AuthNavigator from './AuthNavigator';
+import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
 import { View, ActivityIndicator, StatusBar, StyleSheet } from 'react-native';
 import { ModalProvider } from '../context/ModalContext';
 
 export default function AppRouter() {
-  const { session, setSession, _hasHydrated, fetchUserProfile, clearStore } = useUserStore();
+  // --- CORREÇÃO AQUI ---
+  // A função `setSession` foi adicionada à desestruturação do hook.
+  const { session, setSession, userProfile, _hasHydrated, fetchUserProfile, clearStore } = useUserStore();
 
   useEffect(() => {
+    // Esta parte agora funciona porque `setSession` está definido.
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) fetchUserProfile(session);
@@ -27,9 +31,8 @@ export default function AppRouter() {
     );
 
     return () => subscription.unsubscribe();
-  }, [fetchUserProfile, setSession, clearStore]);
+  }, [fetchUserProfile, setSession, clearStore]); // A dependência `setSession` agora é válida.
 
-  // --- O "PORTÃO" ---
   if (!_hasHydrated) {
     return (
       <View style={styles.loadingContainer}>
@@ -41,10 +44,14 @@ export default function AppRouter() {
 
   return (
     <NavigationContainer>
-      {session && session.user ? (
-        <ModalProvider>
-          <MainNavigator />
-        </ModalProvider>
+      {session && userProfile ? (
+        userProfile.has_completed_onboarding ? (
+          <ModalProvider>
+            <MainNavigator />
+          </ModalProvider>
+        ) : (
+          <OnboardingScreen />
+        )
       ) : (
         <AuthNavigator />
       )}

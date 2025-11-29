@@ -1,6 +1,6 @@
-// src/screens/Gamification/GamificationTabScreen.tsx (VERSÃO COM MODAL DE SUCESSO E LÓGICA CORRIGIDA)
+// src/screens/Gamification/GamificationTabScreen.tsx (VERSÃO CORRIGIDA E OTIMIZADA)
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
     View,
     Text,
@@ -23,7 +23,7 @@ import { useUserStore } from '../../hooks/useUserStore';
 import { Medal, Trophy, X, Backpack, Coins, Check, ShoppingCart, Gift, Sparkles, ArrowUpCircle } from 'lucide-react-native';
 import MissionCard from '../../components/Gamification/MissionCard';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import AnimatedLevelUpModal from '../../components/Gamification/AnimatedLevelUpModal'; // Importe o novo modal
+import AnimatedLevelUpModal from '../../components/Gamification/AnimatedLevelUpModal';
 
 // --- INTERFACES ---
 export interface Mission {
@@ -59,7 +59,7 @@ interface Reward {
 
 // --- CONSTANTES DO CARROSSEL ---
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH * 0.8; // O card ocupará 80% da largura da tela
+const CARD_WIDTH = SCREEN_WIDTH * 0.8;
 const CARD_SPACING = 16;
 const CARD_SNAP_INTERVAL = CARD_WIDTH + CARD_SPACING;
 
@@ -134,9 +134,6 @@ const RewardCard = ({ reward, userCoins, onPurchase }) => {
                 }}
                 disabled={!canAfford || reward.is_purchased}
             >
-                {/* The structure below is clean and ensures no stray text can cause the error.
-                  Each item is a valid component.
-                */}
                 {reward.is_purchased 
                     ? <Check size={18} color="white" /> 
                     : <ShoppingCart size={18} color="white" />
@@ -165,7 +162,6 @@ const BackpackRewardCard = ({ item }) => (
     </View>
 );
 
-// NOVO COMPONENTE PARA A LINHA DO LEADERBOARD
 const LeaderboardRow = ({ user, rank }) => (
     <View style={[styles.leaderboardRow, user.isCurrentUser && styles.currentUserRow]}>
         <Text style={styles.leaderboardRank}>{rank}</Text>
@@ -175,7 +171,6 @@ const LeaderboardRow = ({ user, rank }) => (
     </View>
 );
 
-// NOVO COMPONENTE PARA LISTAR O LEADERBOARD
 const LeaderboardList = ({ users }) => (
     <View style={styles.leaderboardContainer}>
         {users.map((user, index) => (
@@ -202,30 +197,25 @@ export default function GamificationTabScreen() {
     const [currentMission, setCurrentMission] = useState<Mission | null>(null);
     const [missionCode, setMissionCode] = useState('');
 
-    // Estados para o Modal de Level Up
     const [newLevel, setNewLevel] = useState<number | null>(null);
     const [isLevelUpModalVisible, setIsLevelUpModalVisible] = useState(false);
-    const [oldLevel, setOldLevel] = useState<number | null>(null); // Adicione este estado
+    const [oldLevel, setOldLevel] = useState<number | null>(null);
 
-    // Estados para o Modal de Sucesso da Missão
     const [lastCompletedMission, setLastCompletedMission] = useState<Mission | null>(null);
-    const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false); // <== GARANTA QUE ESTA LINHA EXISTA
+    const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
 
-    // NOVO ESTADO: Controla a aba entre "Minha Pontuação" e "Leaderboard"
     const [activeScoreboardTab, setActiveScoreboardTab] = useState<'my_scores' | 'leaderboard'>('my_scores');
-    
-    // NOVO ESTADO: Controla a aba entre missões "Disponíveis" e "Concluídas"
     const [activeMissionTab, setActiveMissionTab] = useState<'available' | 'completed'>('available');
 
 
-    const fetchData = useCallback(async () => {
+    const fetchData = useCallback(async (showLoader = true) => {
         if (!userProfile?.id) return;
+        if (showLoader) setLoading(true);
         try {
             const [leaderboardRes, missionsRes, completedMissionsRes, rewardsRes, userRewardsRes] = await Promise.all([
                 supabase.from('leaderboard').select('*').limit(50),
                 supabase.from('missions').select('*').eq('is_active', true),
                 supabase.from('user_completed_missions').select('mission_id').eq('user_id', userProfile.id),
-                // --- ALTERAÇÃO AQUI: Buscar apenas recompensas ativas ---
                 supabase.from('rewards').select('*').eq('is_active', true),
                 supabase.from('user_rewards').select('reward_id').eq('user_id', userProfile.id)
             ]);
@@ -249,26 +239,51 @@ export default function GamificationTabScreen() {
         } catch (error) {
             console.error("Erro ao buscar dados:", error);
             Alert.alert("Erro de Conexão", "Não foi possível carregar os dados atualizados.");
+        } finally {
+            if (showLoader) setLoading(false);
         }
     }, [userProfile?.id]);
 
-    useFocusEffect(useCallback(() => { setLoading(true); fetchData().finally(() => setLoading(false)); }, [fetchData]));
+    useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
+
+    useEffect(() => {
+        if (!userProfile?.id) return;
+
+        const missionsListener = supabase.channel('public:user_completed_missions')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'user_completed_missions', filter: `user_id=eq.${userProfile.id}` },
+            (payload) => {
+              console.log('Nova missão completada detectada!', payload);
+              fetchData(false);
+            }
+          ).subscribe();
+
+        const profileListener = supabase.channel('public:profiles')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userProfile.id}`},
+            (payload) => {
+                console.log('Atualização de perfil detectada!', payload);
+                fetchUserProfile(session);
+            }
+        ).subscribe();
+
+        return () => {
+            supabase.removeChannel(missionsListener);
+            supabase.removeChannel(profileListener);
+        }
+
+    }, [userProfile?.id, fetchData, fetchUserProfile, session]);
+
+
     const onRefresh = useCallback(async () => { setIsRefreshing(true); await fetchData(); setIsRefreshing(false); }, [fetchData]);
 
     const handlePurchase = async (rewardId: string) => { 
-        // Encontra a recompensa específica para obter o nome e o custo para o alerta
         const reward = rewards.find(r => r.id === rewardId);
         if (!reward) return;
 
-        // Exibe um alerta de confirmação para uma melhor experiência do usuário
         Alert.alert(
             "Confirmar Compra",
-            `Você tem certeza que deseja comprar "${reward.title}" por ${reward.coin_cost} moedas?`, // <-- MUDANÇA AQUI
+            `Você tem certeza que deseja comprar "${reward.title}" por ${reward.coin_cost} moedas?`,
             [
-                {
-                    text: "Cancelar",
-                    style: "cancel"
-                },
+                { text: "Cancelar", style: "cancel" },
                 {
                     text: "Confirmar",
                     onPress: async () => {
@@ -279,14 +294,10 @@ export default function GamificationTabScreen() {
                             });
 
                             if (error || (data && !data.success)) {
-                                // A função do Supabase já nos dá uma mensagem de erro clara
-                                // (ex: "Moedas insuficientes..." ou "Você já possui...")
                                 throw new Error(error?.message || data?.message || "Ocorreu um erro na compra.");
                             }
                             
                             Alert.alert("Sucesso!", `Você adquiriu "${reward.title}"!`);
-
-                            // Atualiza os dados para refletir a compra e o novo saldo de moedas
                             await fetchUserProfile(session);
                             await fetchData();
 
@@ -314,68 +325,75 @@ export default function GamificationTabScreen() {
             setShowCodeInput(true);
         }
     };
-    // Função para fechar o modal de sucesso e verificar se precisa abrir o de level up
+
     const closeSuccessModalAndCheckLevelUp = () => {
         setIsSuccessModalVisible(false);
         if (newLevel !== null) {
             setIsLevelUpModalVisible(true);
-            setOldLevel(userProfile.level); // Armazena o nível antigo antes de atualizar
+            setOldLevel(userProfile.level);
             setTimeout(() => {
                 setIsLevelUpModalVisible(false);
                 setNewLevel(null);
-                setOldLevel(null); // Limpa o nível antigo após fechar o modal
+                setOldLevel(null);
             }, 2000);
         }
-}
+    }
     
-
-    // --- LÓGICA DE COMPLETAR MISSÃO ATUALIZADA ---
     const handleCompleteMission = async (missionToComplete: Mission | null) => {
-        // A guarda agora está no início para máxima eficiência
-        if (!missionToComplete || isSubmitting) return;
-        
+        if (!missionToComplete || isSubmitting) {
+            console.log('Mission submission blocked', { missionToComplete, isSubmitting });
+            return;
+        }
         setIsSubmitting(true);
-
+    
         try {
-            const { data, error } = await supabase.rpc('complete_mission', { 
-                p_mission_id: missionToComplete.id 
+            const { data: functionResponse, error: invokeError } = await supabase.functions.invoke('complete-mission', {
+                body: { mission_id: missionToComplete.id }
             });
-
-            if (error || (data && !data.success)) {
-                // A nossa função do Supabase já retorna uma mensagem de erro amigável
-                // como "This unique mission has already been completed".
-                throw new Error(data?.message || error?.message || "Ocorreu um erro.");
+    
+            if (invokeError) {
+                throw new Error(invokeError.message || 'Unknown error invoking function');
             }
-
-            // --- Caminho de Sucesso ---
+            if (functionResponse.error) {
+                throw new Error(functionResponse.message || 'Mission completion failed on server');
+            }
+    
             setLastCompletedMission(missionToComplete);
             setIsSuccessModalVisible(true);
             
-            // Lógica de Level Up
-            const { data: levelUpData } = await supabase.rpc('check_and_apply_level_up', {
+            const { data: levelUpData, error: levelUpError } = await supabase.rpc('check_and_apply_level_up', {
                 p_user_id: userProfile.id
             });
-
+    
+            if (levelUpError) {
+                console.error('Level up check failed:', levelUpError);
+            }
+    
             if (levelUpData?.leveled_up) {
                 setOldLevel(userProfile.level);
                 setNewLevel(levelUpData.new_level);
             }
-
-            // Atualiza os dados na tela
-            await fetchUserProfile(session);
-            await fetchData();
-
+    
+            await Promise.all([
+                fetchUserProfile(session),
+                fetchData(false)
+            ]);
+    
         } catch (error: any) {
-            Alert.alert('Atenção', error.message);
+            console.error('Mission completion error:', error);
+            Alert.alert(
+                'Erro na Missão',
+                error.message || 'Não foi possível completar a missão. Tente novamente.'
+            );
         } finally {
-            // Um delay generoso para garantir que todas as leituras de scanner parem
-            setTimeout(() => setIsSubmitting(false), 1000);
+            setTimeout(() => {
+                setIsSubmitting(false);
+                setCurrentMission(null);
+            }, 1000);
         }
     };
     
-    // --- CORREÇÃO PARA MÚLTIPLAS LEITURAS DE QR CODE ---
     const handleBarCodeScanned = ({ data }: { data: string }) => {
-        // Fecha o scanner IMEDIATAMENTE para evitar leituras duplicadas
         setShowScanner(false);
         
         if (currentMission && data === currentMission.completion_data) {
@@ -387,14 +405,17 @@ export default function GamificationTabScreen() {
     };
 
     const handleCodeSubmit = () => {
-        if (currentMission && missionCode.trim().toUpperCase() === currentMission.completion_data.trim().toUpperCase()) {
+        setShowCodeInput(false);
+        const codeToSubmit = missionCode;
+        setMissionCode('');
+
+        if (currentMission && codeToSubmit.trim().toUpperCase() === currentMission.completion_data.trim().toUpperCase()) {
             handleCompleteMission(currentMission);
         } else {
             Alert.alert('Código Inválido', 'O código inserido não está correto para esta missão.');
         }
     };
     
-    // --- Função para fechar o modal de sucesso ---
     const closeSuccessModal = () => {
         setIsSuccessModalVisible(false);
         setLastCompletedMission(null);
@@ -414,7 +435,6 @@ export default function GamificationTabScreen() {
     <SafeAreaView style={styles.container}>
         <ScrollView refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
             
-            {/* CABEÇALHO */}
             <View style={styles.header}>
                 <Text style={styles.title}>Scoreboard</Text>
                 <TouchableOpacity style={styles.backpackButton} onPress={() => setShowBackpack(true)}>
@@ -423,7 +443,6 @@ export default function GamificationTabScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* SELETOR DE ABAS DO SCOREBOARD */}
             <View style={styles.segmentedControl}>
                 <TouchableOpacity 
                     style={[styles.segment, activeScoreboardTab === 'my_scores' && styles.segmentActive]}
@@ -439,15 +458,10 @@ export default function GamificationTabScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* ================================================================== */}
-            {/* AQUI ESTÁ A MUDANÇA PRINCIPAL: RENDERIZAÇÃO CONDICIONAL DA TELA  */}
-            {/* ================================================================== */}
             {activeScoreboardTab === 'my_scores' ? (
-                // SE A ABA ATIVA FOR "MINHA PONTUAÇÃO", MOSTRA TUDO
                 <>
                     <MyScoreCard profile={profileWithRank} />
 
-                    {/* SEÇÃO DE MISSÕES */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Missões</Text>
                         <View style={styles.segmentedControl}>
@@ -478,7 +492,6 @@ export default function GamificationTabScreen() {
                         )}
                     </View>
 
-                    {/* SEÇÃO DA LOJA DE RECOMPENSAS */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Loja de Recompensas</Text>
                         <View style={styles.userCoinsContainer}>
@@ -488,13 +501,12 @@ export default function GamificationTabScreen() {
                         {rewards.length > 0 ? (
                         <FlatList
                             data={rewards}
-                            horizontal // Ativa o modo de rolagem horizontal
-                            showsHorizontalScrollIndicator={false} // Esconde a barra de rolagem
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
                             keyExtractor={(item) => item.id}
-                            snapToInterval={CARD_SNAP_INTERVAL} // Define o intervalo para o "snap" (puxar) do carrossel
-                            decelerationRate="fast" // Faz o "snap" ser mais rápido e nítido
+                            snapToInterval={CARD_SNAP_INTERVAL}
+                            decelerationRate="fast"
                             contentContainerStyle={{
-                                // Adiciona um padding para centralizar o primeiro e o último item
                                 paddingHorizontal: (SCREEN_WIDTH - CARD_WIDTH) / 2 - (CARD_SPACING / 2),
                             }}
                             renderItem={({ item }) => (
@@ -511,22 +523,18 @@ export default function GamificationTabScreen() {
                 </View>
                 </>
             ) : (
-                // SE A ABA ATIVA FOR "LEADERBOARD", MOSTRA APENAS A LISTA
                 <>
                     <LeaderboardList users={leaderboard} />
                 </>
             )}
         </ScrollView>
 
-        {/* --- MODAIS --- */}
-        {/* Todos os modais ficam aqui, fora do ScrollView */}
-
-        <Modal visible={showScanner} animationType="slide" onRequestClose={() => setShowScanner(false)}>
+        <Modal visible={showScanner} animationType="slide" onRequestClose={() => {setShowScanner(false); setCurrentMission(null);}}>
             <CameraView onBarcodeScanned={isSubmitting ? undefined : handleBarCodeScanned} style={StyleSheet.absoluteFillObject} />
-            <TouchableOpacity style={styles.closeModalButton} onPress={() => setShowScanner(false)}><X size={30} color="white" /></TouchableOpacity>
+            <TouchableOpacity style={styles.closeModalButton} onPress={() => {setShowScanner(false); setCurrentMission(null);}}><X size={30} color="white" /></TouchableOpacity>
         </Modal>
 
-        <Modal visible={showCodeInput} animationType="fade" transparent={true} onRequestClose={() => setShowCodeInput(false)}>
+        <Modal visible={showCodeInput} animationType="fade" transparent={true} onRequestClose={() => {setShowCodeInput(false); setCurrentMission(null);}}>
              <View style={styles.modalOverlay}>
                  <View style={styles.modalContent}>
                      <Text style={styles.modalTitle}>Completar Missão</Text>
@@ -535,7 +543,7 @@ export default function GamificationTabScreen() {
                      <TouchableOpacity style={styles.submitButton} onPress={handleCodeSubmit} disabled={isSubmitting}>
                          {isSubmitting ? <ActivityIndicator color="white" /> : <Text style={styles.submitButtonText}>Confirmar</Text>}
                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.cancelButton} onPress={() => { setShowCodeInput(false); setMissionCode(''); }}>
+                      <TouchableOpacity style={styles.cancelButton} onPress={() => { setShowCodeInput(false); setMissionCode(''); setCurrentMission(null); }}>
                          <Text style={styles.cancelText}>Cancelar</Text>
                      </TouchableOpacity>
                  </View>
@@ -595,15 +603,14 @@ export default function GamificationTabScreen() {
 
 // --- ESTILOS ---
 const styles = StyleSheet.create({
-    // ... (todos os estilos anteriores mantidos) ...
-    container: { flex: 1, backgroundColor: '#F8FAFC', paddingBottom: 150 },
+    container: { flex: 1, backgroundColor: '#b7e2d4ff', paddingTop: 20, marginBottom: 95 },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
     header: { paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
     title: { fontSize: 22, fontWeight: 'bold' },
     backpackButton: { position: 'absolute', right: 16, top: 12, padding: 8 },
     backpackBadge: { position: 'absolute', top: 2, right: 2, backgroundColor: '#EF4444', borderRadius: 10, width: 20, height: 20, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#F8FAFC' },
     backpackBadgeText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
-    section: { marginHorizontal: 16, marginTop: 24, paddingBottom: 58 },
+    section: { marginHorizontal: 16, marginTop: 24 },
     sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
     noDataText: { textAlign: 'center', color: '#6B7280', fontStyle: 'italic', paddingVertical: 20, marginTop: 56 },
     userCoinsContainer: { backgroundColor: '#F8FAFC', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16, paddingVertical: 8, backgroundColor: '#FFFBEB', borderRadius: 12, borderColor: '#FEF3C7', borderWidth: 1 },
@@ -659,8 +666,6 @@ const styles = StyleSheet.create({
     avatarImage: { width: '100%', height: '100%' },
     avatarText: { color: '#1E40AF', fontWeight: 'bold', fontSize: 16 },
     closeModalButton: { position: 'absolute', top: 60, right: 20, backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, borderRadius: 20 },
-
-    // --- NOVOS ESTILOS PARA O MODAL DE SUCESSO ---
     successModalContent: { width: '85%', backgroundColor: 'white', borderRadius: 20, padding: 24, alignItems: 'center' },
     successIconContainer: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#10B98130', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
     successModalTitle: { fontSize: 24, fontWeight: 'bold', color: '#1F2937', marginBottom: 8 },
@@ -670,9 +675,7 @@ const styles = StyleSheet.create({
     rewardText: { fontSize: 16, fontWeight: '600', color: '#374151', marginLeft: 12 },
     successCloseButton: { width: '100%', backgroundColor: '#3B82F6', padding: 16, borderRadius: 10, alignItems: 'center' },
     successCloseButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-    // --- NOVO ESTILO PARA O TEXTO DE LEVEL UP ---
     levelUpText: { fontSize: 48, fontWeight: 'bold', color: '#3B82F6', marginBottom: 24, textAlign: 'center' },
-    // NOVO: Estilos para o Seletor de Abas (Segmented Control)
     segmentedControl: {
         flexDirection: 'row',
         backgroundColor: '#E5E7EB',
@@ -698,11 +701,8 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         borderWidth: 1,
         borderColor: '#E5E7EB',
-        marginHorizontal: 2, // Pequeno espaçamento entre os segmentos
-        animationType: 'spring',
-        animationDuration: 200,
-        animationEasing: 'ease-in-out',
-        transform: [{ scale: 1.05 }], // Leve aumento de tamanho ao ativar
+        marginHorizontal: 2,
+        transform: [{ scale: 1.05 }],
 
     },
     segmentText: {
@@ -713,8 +713,6 @@ const styles = StyleSheet.create({
     segmentTextActive: {
         color: '#3B82F6',
     },
-
-    // NOVO: Estilos para o Leaderboard
     leaderboardContainer: {
         marginHorizontal: 16,
         marginTop: 8,

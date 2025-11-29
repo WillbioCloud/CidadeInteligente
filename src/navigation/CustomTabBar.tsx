@@ -3,12 +3,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useUserStore } from '../hooks/useUserStore';
-import { Home, Store, Trophy, Map, User } from '../components/Icons';
+import { Home, Store, Trophy, Newspaper, User } from '../components/Icons';
 import { designSystem, THEME_COLORS } from '../styles/designSystem';
 import { LOTEAMENTOS_CONFIG } from '../data/loteamentos.data';
 
 const icons = {
-  Home, Comercios: Store, Gamificacao: Trophy, Mapa: Map, Conta: User,
+  Home, Comercios: Store, Gamificacao: Trophy, Feed: Newspaper, Conta: User,
 };
 
 export function CustomTabBar({ state, descriptors, navigation }) {

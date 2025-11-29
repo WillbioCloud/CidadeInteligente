@@ -1,22 +1,15 @@
-// src/components/layout/NotificationsModal.tsx (VERSÃO FINAL COM REALTIME SUBSCRIPTION)
+// src/components/layout/NotificationsModal.tsx
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, SafeAreaView, ActivityIndicator, SectionList } from 'react-native';
+import React, { useState, useCallback, useEffect, useMemo, forwardRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, SectionList, Alert } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { supabase } from '../../lib/supabase';
 import { useUserStore } from '../../hooks/useUserStore';
 import { formatTimeAgo } from '../../utils/formatTimeAgo';
-import { X, Bell, Zap, Store, Newspaper, Gift, ArrowUpCircle, Sparkles, ChevronDown } from 'lucide-react-native';
+import { Bell, Zap, Store, Newspaper, Gift, ArrowUpCircle, Sparkles } from 'lucide-react-native';
 
-// Tipagem para a navegação
-type RootStackParamList = {
-    Home: { screen: string, params?: { scrollToEnd?: boolean } };
-    Comercios: { screen: string, params: { commerceId: string } };
-    Gamificacao: undefined;
-};
-
-// Tipagem da Notificação
+// ... (As interfaces Notification e RootStackParamList permanecem as mesmas)
 interface Notification {
   id: string;
   type: 'lote_disponivel' | 'novidade_feed' | 'nova_missao' | 'workshop' | 'novo_comercio' | 'app_update' | 'novidade_comercio';
@@ -26,26 +19,15 @@ interface Notification {
   is_read: boolean;
   created_at: string;
 }
+type RootStackParamList = {
+    Home: { screen: string, params?: { scrollToEnd?: boolean } };
+    Comercios: { screen: string, params: { commerceId: string } };
+    Gamificacao: undefined;
+};
+
 
 const NotificationCard = ({ item, onClose }: { item: Notification, onClose: () => void }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const animatedHeight = useSharedValue(0);
-  const animatedOpacity = useSharedValue(0);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    height: animatedHeight.value,
-    opacity: animatedOpacity.value,
-    overflow: 'hidden',
-  }));
-
-  const toggleExpansion = () => {
-    const targetHeight = isExpanded ? 0 : 80;
-    animatedHeight.value = withTiming(targetHeight, { duration: 300, easing: Easing.bezier(0.25, 0.1, 0.25, 1) });
-    animatedOpacity.value = withTiming(isExpanded ? 0 : 1, { duration: 250 });
-    setIsExpanded(!isExpanded);
-  };
 
   const getNotificationStyle = (type: Notification['type']) => {
     switch (type) {
@@ -60,9 +42,9 @@ const NotificationCard = ({ item, onClose }: { item: Notification, onClose: () =
   };
 
   const handlePress = () => {
-    console.log('Dados da Notificação Clicada:', JSON.stringify(item, null, 2));
-    onClose();
+    onClose(); // Fecha o bottom sheet
     setTimeout(() => {
+      // Lógica de navegação
       switch (item.type) {
         case 'novo_comercio':
         case 'novidade_comercio':
@@ -71,8 +53,6 @@ const NotificationCard = ({ item, onClose }: { item: Notification, onClose: () =
               screen: 'CommerceDetail',
               params: { commerceId: item.metadata.commerce_id },
             });
-          } else {
-             console.warn("Navegação falhou: 'commerce_id' não foi encontrado no metadata.");
           }
           break;
         case 'novidade_feed':
@@ -91,41 +71,36 @@ const NotificationCard = ({ item, onClose }: { item: Notification, onClose: () =
   const { Icon, color } = getNotificationStyle(item.type);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress} onLongPress={toggleExpansion} activeOpacity={0.8}>
-      <View style={styles.cardHeader}>
-        <View style={[styles.iconContainer, { backgroundColor: `${color}1A` }]}>
-          <Icon size={24} color={color} />
-        </View>
-        <View style={styles.textContainer}>
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.cardMessage} numberOfLines={2}>{item.message}</Text>
-          <Text style={styles.cardTime}>{formatTimeAgo(item.created_at)}</Text>
-        </View>
-        {!item.is_read && <View style={[styles.unreadDot, { backgroundColor: color }]} />}
+    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.7}>
+      <View style={[styles.iconContainer, { backgroundColor: `${color}1A` }]}>
+        <Icon size={24} color={color} />
       </View>
-
-      <Animated.View style={animatedStyle}>
-        <View style={styles.expandedContent}>
-            <Text style={styles.detailsTitle}>Detalhes Adicionais:</Text>
-            {item.metadata && Object.entries(item.metadata).map(([key, value]) => (
-                <Text key={key} style={styles.detailsText}>
-                    <Text style={{fontWeight: 'bold'}}>{key.replace(/_/g, ' ')}:</Text> {String(value)}
-                </Text>
-            ))}
-        </View>
-      </Animated.View>
-
-      <View style={styles.expandIndicator}>
-        <ChevronDown size={16} color="#94A3B8" style={{ transform: [{ rotate: isExpanded ? '180deg' : '0deg' }] }} />
+      <View style={styles.textContainer}>
+        <Text style={styles.cardTitle}>{item.title}</Text>
+        <Text style={styles.cardMessage} numberOfLines={2}>{item.message}</Text>
+        <Text style={styles.cardTime}>{formatTimeAgo(item.created_at)}</Text>
       </View>
+      {!item.is_read && <View style={[styles.unreadDot, { backgroundColor: color }]} />}
     </TouchableOpacity>
   );
 };
 
-export default function NotificationsModal({ isVisible, onClose }) {
+const NotificationsModal = forwardRef((props, ref) => {
   const { userProfile } = useUserStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const snapPoints = useMemo(() => ['50%', '85%'], []);
+
+  const markNotificationsAsRead = useCallback(async () => {
+    if (!userProfile?.id) return;
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .or(`user_id.eq.${userProfile.id},user_id.is.null`)
+      .eq('is_read', false);
+    if (error) console.error("Erro ao marcar notificações como lidas:", error);
+  }, [userProfile?.id]);
 
   const fetchNotifications = useCallback(async () => {
     if (!userProfile?.id) return;
@@ -137,60 +112,41 @@ export default function NotificationsModal({ isVisible, onClose }) {
       .order('created_at', { ascending: false })
       .limit(50);
     
-    if (error) {
-      console.error('Erro ao buscar notificações:', error);
-    } else {
-      setNotifications(data || []);
-    }
+    if (error) console.error('Erro ao buscar notificações:', error);
+    else setNotifications(data || []);
     setLoading(false);
   }, [userProfile?.id]);
 
-  useEffect(() => {
-    if (isVisible) {
+  const handleSheetChanges = useCallback((index: number) => {
+    // Quando o bottom sheet é aberto (index > -1), busca as notificações e marca como lidas
+    if (index > -1) {
       fetchNotifications();
+      markNotificationsAsRead();
     }
-  }, [isVisible, fetchNotifications]);
+  }, [fetchNotifications, markNotificationsAsRead]);
 
-  // LÓGICA DE ATUALIZAÇÃO EM TEMPO REAL
+  // Lógica de limpeza de notificações antigas
   useEffect(() => {
-    if (!isVisible) return;
-
-    const handleNewNotification = (payload) => {
-      console.log('Nova notificação recebida!', payload.new);
-      setNotifications(currentNotifications => [payload.new as Notification, ...currentNotifications]);
+    const cleanup = async () => {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const { error } = await supabase
+            .from('notifications')
+            .delete()
+            .lt('created_at', thirtyDaysAgo.toISOString());
+        if (error) console.error("Erro ao limpar notificações antigas:", error);
+        else console.log("Notificações antigas foram limpas.");
     };
-
-    const subscription = supabase
-      .channel('public:notifications')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications' },
-        handleNewNotification
-      )
-      .subscribe();
-
-    console.log('Inscrito no canal de notificações.');
-
-    return () => {
-      if (subscription) {
-        supabase.removeChannel(subscription);
-        console.log('Desinscrito do canal de notificações.');
-      }
-    };
-  }, [isVisible]);
+    cleanup();
+  }, []);
 
   const groupedNotifications = notifications.reduce((acc, notif) => {
       const today = new Date();
       const notifDate = new Date(notif.created_at);
-      let title = '';
-      if(today.toDateString() === notifDate.toDateString()) {
-          title = 'Hoje';
-      } else {
-          title = notifDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
-      }
-      if(!acc[title]) {
-          acc[title] = [];
-      }
+      let title = (today.toDateString() === notifDate.toDateString()) 
+          ? 'Hoje' 
+          : notifDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+      if(!acc[title]) acc[title] = [];
       acc[title].push(notif);
       return acc;
   }, {});
@@ -201,13 +157,17 @@ export default function NotificationsModal({ isVisible, onClose }) {
   }));
 
   return (
-    <Modal animationType="slide" visible={isVisible} onRequestClose={onClose}>
-      <SafeAreaView style={styles.modalContainer}>
+    <BottomSheetModal
+      ref={ref}
+      index={1}
+      snapPoints={snapPoints}
+      onChange={handleSheetChanges}
+      backgroundStyle={styles.modalBackground}
+    >
+      <BottomSheetView style={styles.contentContainer}>
         <View style={styles.header}>
-          <Text style={styles.title}>Notificações</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <X size={24} color="#333" />
-          </TouchableOpacity>
+            <View style={styles.grabber} />
+            <Text style={styles.title}>Notificações</Text>
         </View>
         
         {loading ? (
@@ -216,7 +176,7 @@ export default function NotificationsModal({ isVisible, onClose }) {
             <SectionList
                 sections={sections}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => <NotificationCard item={item} onClose={onClose} />}
+                renderItem={({ item }) => <NotificationCard item={item} onClose={() => ref.current?.dismiss()} />}
                 renderSectionHeader={({ section: { title } }) => (
                     <Text style={styles.sectionHeader}>{title}</Text>
                 )}
@@ -224,16 +184,37 @@ export default function NotificationsModal({ isVisible, onClose }) {
                 ListEmptyComponent={<Text style={styles.emptyText}>Nenhuma notificação por aqui.</Text>}
             />
         )}
-      </SafeAreaView>
-    </Modal>
+      </BottomSheetView>
+    </BottomSheetModal>
   );
-}
+});
+
+export default NotificationsModal;
 
 const styles = StyleSheet.create({
-    modalContainer: { flex: 1, backgroundColor: '#F8FAFC' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-    title: { fontSize: 22, fontWeight: 'bold' },
-    closeButton: { padding: 4 },
+    contentContainer: {
+        flex: 1,
+    },
+    modalBackground: {
+        backgroundColor: '#F8FAFC',
+    },
+    header: { 
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 1, 
+        borderBottomColor: '#F1F5F9' 
+    },
+    grabber: {
+        width: 40,
+        height: 5,
+        backgroundColor: '#CBD5E1',
+        borderRadius: 2.5,
+        marginBottom: 10,
+    },
+    title: { 
+        fontSize: 18, 
+        fontWeight: 'bold' 
+    },
     scrollContainer: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 30 },
     sectionHeader: { fontSize: 14, fontWeight: '600', color: '#64748B', textTransform: 'uppercase', marginBottom: 8, marginTop: 16 },
     card: { 
@@ -243,10 +224,6 @@ const styles = StyleSheet.create({
         marginBottom: 12, 
         borderWidth: 1, 
         borderColor: '#F1F5F9',
-        overflow: 'hidden',
-        position: 'relative',
-    },
-    cardHeader: {
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -255,30 +232,6 @@ const styles = StyleSheet.create({
     cardTitle: { fontSize: 15, fontWeight: 'bold', color: '#1E293B' },
     cardMessage: { fontSize: 14, color: '#475569', marginTop: 2, lineHeight: 20 },
     cardTime: { fontSize: 12, color: '#94A3B8', marginTop: 6 },
-    unreadDot: { width: 10, height: 10, borderRadius: 5, marginLeft: 8, alignSelf: 'flex-start' },
+    unreadDot: { width: 10, height: 10, borderRadius: 5, marginLeft: 8, alignSelf: 'center' },
     emptyText: { textAlign: 'center', marginTop: 50, color: '#6B7280' },
-    expandedContent: {
-        marginTop: 12,
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: '#F1F5F9',
-    },
-    detailsTitle: {
-        fontSize: 13,
-        fontWeight: 'bold',
-        color: '#334155',
-        marginBottom: 4,
-    },
-    detailsText: {
-        fontSize: 13,
-        color: '#475569',
-        textTransform: 'capitalize',
-        lineHeight: 18,
-    },
-    expandIndicator: {
-        position: 'absolute',
-        bottom: 4,
-        right: 8,
-        opacity: 0.5,
-    },
 });

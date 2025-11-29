@@ -55,10 +55,6 @@ export default function CourtBookingDetailScreen({ route, navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backToCourtsLink}>
-            <ArrowLeft size={16} color="#4B5563" />
-            <Text style={styles.backToCourtsText}>Voltar às quadras</Text>
-        </TouchableOpacity>
 
         {/* Card de Informações da Quadra */}
         <View style={styles.courtInfoCard}>
@@ -116,7 +112,7 @@ export default function CourtBookingDetailScreen({ route, navigation }) {
 
 // Estilos baseados no novo conceito
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#FFFFFF' },
+    container: { flex: 1, backgroundColor: '#FFFFFF', paddingBottom: 20 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
     headerTitle: { fontSize: 18, fontWeight: 'bold' },
     backButton: { padding: 8 },
@@ -148,6 +144,6 @@ const styles = StyleSheet.create({
     slotChipText: { color: '#334155', fontWeight: '500' },
     slotChipSelectedText: { color: '#1E40AF' },
     footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#F1F5F9' },
-    confirmButton: { backgroundColor: '#3B82F6', padding: 16, borderRadius: 12, alignItems: 'center' },
+    confirmButton: { backgroundColor: '#3B82F6', padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 100, minHeight: 54, marginHorizontal: 16   },
     confirmButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
 });

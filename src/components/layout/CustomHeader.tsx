@@ -1,13 +1,12 @@
 // src/components/layout/CustomHeader.tsx
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Image } from 'react-native';
 import { Bell, User, Award, Star } from '../Icons';
 import { useUserStore } from '../../hooks/useUserStore';
 import { useModals } from '../../context/ModalContext';
+import { supabase } from '../../lib/supabase';
 
-// --- AQUI ESTÁ A MUDANÇA ---
-// Adicionamos a nova prop para que o MainLayout possa nos dizer o que fazer
 interface CustomHeaderProps {
   onNotificationsPress: () => void;
 }
@@ -15,11 +14,53 @@ interface CustomHeaderProps {
 export default function CustomHeader({ onNotificationsPress }: CustomHeaderProps) {
   const { userProfile } = useUserStore();
   const { showProfile } = useModals();
+  const [hasUnread, setHasUnread] = useState(false);
 
   const firstName = userProfile?.full_name?.split(' ')[0] || 'Usuário';
   const displayedAchievements = userProfile?.displayed_achievements || [];
   const userLevel = userProfile?.level || 1;
   const avatarUrl = userProfile?.avatar_url;
+
+  useEffect(() => {
+    if (!userProfile?.id) return;
+
+    // Função para verificar notificações não lidas
+    const checkUnreadNotifications = async () => {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('id')
+        .or(`user_id.eq.${userProfile.id},user_id.is.null`)
+        .eq('is_read', false)
+        .limit(1);
+
+      if (error) {
+        console.error("Erro ao verificar notificações:", error);
+        return;
+      }
+      setHasUnread(data && data.length > 0);
+    };
+
+    checkUnreadNotifications();
+
+    // Ouvinte em tempo real para novas notificações
+    const subscription = supabase
+      .channel('public:notifications')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        (payload) => {
+          // Se a nova notificação for para este utilizador ou para todos, marca como não lida
+          if (payload.new.user_id === userProfile.id || payload.new.user_id === null) {
+            setHasUnread(true);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [userProfile?.id]);
 
   return (
     <View style={styles.headerContainer}>
@@ -52,15 +93,17 @@ export default function CustomHeader({ onNotificationsPress }: CustomHeaderProps
                 </View>
               ))
             ) : (
-              <Text style={styles.loteamentoText}>Selecione suas conquistas</Text>
+              <Text style={styles.loteamentoText}>Selecione as suas conquistas</Text>
             )}
           </View>
         </View>
 
-        {/* Agora, ao pressionar o sino, ele chama a função que o MainLayout nos passou */}
-        <TouchableOpacity style={styles.notificationButton} onPress={onNotificationsPress}>
+        <TouchableOpacity style={styles.notificationButton} onPress={() => {
+          onNotificationsPress();
+          setHasUnread(false); // Otimisticamente marca como lido ao abrir
+        }}>
           <Bell size={24} color="#333" />
-          <View style={styles.notificationDot} />
+          {hasUnread && <View style={styles.notificationDot} />}
         </TouchableOpacity>
       </View>
     </View>
@@ -74,7 +117,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F1F5F9',
     paddingTop: Platform.OS === 'ios' ? 50 : 40,
   },
-  // --- FIM DA MUDANÇA ---
   content: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -140,19 +182,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: '#EF4444',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: 'white',
-    pulse: {
-      animation: 'pulse 1.5s infinite',
-      '@keyframes pulse': {
-        '0%': { transform: [{ scale: 1 }] },
-        '50%': { transform: [{ scale: 1.5 }] },
-        '100%': { transform: [{ scale: 1 }] },
-      }}
   },
   achievementsContainer: {
     flexDirection: 'row',

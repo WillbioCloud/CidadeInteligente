@@ -68,7 +68,6 @@ export default function CourtSchedulingScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Reservar Quadras</Text>
         {/* BOTÃO PARA VER AGENDAMENTOS */}
         <TouchableOpacity onPress={() => navigation.navigate('MyBookings')} style={styles.myBookingsButton}>
           <Text style={styles.myBookingsText}>Meus Agendamentos</Text>
@@ -94,11 +93,11 @@ export default function CourtSchedulingScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#F8FAFC', marginBottom: 100, paddingBottom: 20 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
   backButton: { padding: 8 },
-  myBookingsButton: { padding: 8 },
+  myBookingsButton: { padding: 8, backgroundColor: '#9ce9af36', borderRadius: 8 },
   myBookingsText: { color: '#339949ff', fontWeight: '600' },
   scrollContent: { padding: 16 },
   pageHeader: { alignItems: 'center', marginBottom: 24 },

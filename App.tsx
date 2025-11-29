@@ -1,11 +1,15 @@
 // App.tsx
 import React from 'react';
 import AppRouter from './src/navigation/AppRouter';
-import { UserStoreProvider } from './src/hooks/useUserStore'; // Exemplo, se você usa Provider
+import { ModalProvider } from './src/context/ModalContext'; // Adicione a importação do ModalProvider
+import { GestureHandlerRootView } from 'react-native-gesture-handler'; // Importante para gestos
 
 export default function App() {
   return (
-    // Seus providers (Zustand, etc.) devem envolver o AppRouter
-    <AppRouter />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+        <ModalProvider>
+            <AppRouter />
+        </ModalProvider>
+    </GestureHandlerRootView>
   );
 }

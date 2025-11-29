@@ -1,8 +1,9 @@
 // src/screens/Profile/SettingsScreen.tsx
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
-import { ArrowLeft, Bell, Palette, Shield, ChevronRight } from '../../components/Icons';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Switch } from 'react-native';
+// Adicione 'FileText' às suas importações de ícones
+import { ArrowLeft, Bell, Palette, Shield, ChevronRight, FileText } from '../../components/Icons';
 
 const SettingItem = ({ icon: Icon, title, description, onPress, children }) => (
   <TouchableOpacity style={styles.itemContainer} onPress={onPress} disabled={!onPress}>
@@ -32,6 +33,7 @@ export default function SettingsScreen({ navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Seções de Notificações e Aparência (sem alterações) */}
         <Text style={styles.sectionTitle}>Notificações</Text>
         <View style={styles.section}>
           <SettingItem icon={Bell} title="Notificações Push">
@@ -52,12 +54,19 @@ export default function SettingsScreen({ navigation }) {
           </SettingItem>
         </View>
 
-        <Text style={styles.sectionTitle}>Conta</Text>
+        {/* Seção de Conta Atualizada */}
+        <Text style={styles.sectionTitle}>Legal & Segurança</Text>
         <View style={styles.section}>
+          {/* NOVO ITEM ADICIONADO */}
+          <SettingItem
+            icon={FileText}
+            title="Política de Privacidade"
+            onPress={() => navigation.navigate('PrivacyPolicy')}
+          />
           <SettingItem
             icon={Shield}
-            title="Privacidade e Segurança"
-            onPress={() => navigation.navigate('Placeholder', { screenName: 'Privacidade e Segurança' })}
+            title="Segurança da Conta"
+            onPress={() => navigation.navigate('Placeholder', { screenName: 'Segurança' })}
           />
         </View>
       </ScrollView>
@@ -65,6 +74,7 @@ export default function SettingsScreen({ navigation }) {
   );
 }
 
+// Estilos (sem alterações)
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },

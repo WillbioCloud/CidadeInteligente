@@ -1,4 +1,4 @@
-// src/hooks/useUserStore.ts (VERSÃO FINAL COM CONTROLE DE HIDRATAÇÃO)
+// src/hooks/useUserStore.ts (VERSÃO FINAL COM A CORREÇÃO DE TENTATIVAS)
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import { Loteamento, LOTEAMENTOS_CONFIG } from '../data/loteamentos.data';
 import { THEME_COLORS } from '../styles/designSystem';
 
+// --- SUAS INTERFACES (sem alterações) ---
 export interface UserProperty {
   id: string;
   loteamento_id: string;
@@ -40,14 +41,13 @@ interface UserState {
   session: any | null;
   userProfile: Profile | null;
   selectedLoteamentoId: string | null;
-  _hasHydrated: boolean; // Estado para controlar a hidratação
+  _hasHydrated: boolean;
   setSession: (session: any) => void;
   setUserProfile: (profile: Profile | null, properties: UserProperty[]) => void;
   setSelectedLoteamentoId: (loteamentoId: string) => void;
   setHasHydrated: (state: boolean) => void;
   fetchUserProfile: (session: any) => Promise<void>;
   clearStore: () => void;
-  // Adicionando as funções que faltavam na interface
   updateUserProfile: (updates: Partial<Profile>) => void;
   setDisplayedAchievements: (achievements: string[]) => void;
   getCurrentLoteamento: () => Loteamento | undefined;
@@ -60,7 +60,7 @@ export const useUserStore = create<UserState>()(
       session: null,
       userProfile: null,
       selectedLoteamentoId: 'cidade_inteligente',
-      _hasHydrated: false, // Começa como falso
+      _hasHydrated: false,
 
       setHasHydrated: (state) => set({ _hasHydrated: state }),
       setSession: (session) => set({ session }),
@@ -78,19 +78,53 @@ export const useUserStore = create<UserState>()(
         });
       },
 
+      // --- FUNÇÃO CORRIGIDA AQUI ---
       fetchUserProfile: async (session) => {
         if (!session?.user) return;
-        try {
-          const { data: profileData, error: profileError } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-          if (profileError) throw profileError;
-          const { data: propertiesData, error: propertiesError } = await supabase.from('user_properties').select('*').eq('user_id', session.user.id);
-          if (propertiesError) throw propertiesError;
-          get().setUserProfile(profileData, propertiesData || []);
-        } catch (error) {
-          console.error("Erro ao buscar perfil completo:", error);
-          get().clearStore();
-          supabase.auth.signOut();
-        }
+
+        const fetchProfileWithRetries = async (retries = 3, delay = 500) => {
+          try {
+            console.log(`Buscando perfil... Tentativas restantes: ${retries}`);
+
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            // Se o erro for "nenhuma linha encontrada" e ainda houver tentativas, tenta de novo
+            if (error && error.code === 'PGRST116' && retries > 0) {
+              console.warn('Perfil ainda não encontrado. Tentando novamente em 500ms.');
+              await new Promise(res => setTimeout(res, delay));
+              return fetchProfileWithRetries(retries - 1, delay);
+            }
+
+            // Se for qualquer outro tipo de erro, lança para o catch
+            if (error && error.code !== 'PGRST116') {
+              throw error;
+            }
+
+            // Se encontrou, busca as propriedades
+            const { data: propertiesData, error: propertiesError } = await supabase
+              .from('user_properties')
+              .select('*')
+              .eq('user_id', session.user.id);
+            
+            if (propertiesError) throw propertiesError;
+
+            // Atualiza o estado da aplicação
+            get().setUserProfile(data, propertiesData || []);
+
+          } catch (error) {
+            console.error("Erro crítico ao buscar perfil do usuário:", error);
+            // Desloga o usuário para evitar que ele fique em um estado inconsistente
+            get().clearStore();
+            supabase.auth.signOut();
+          }
+        };
+
+        // Inicia a busca com a lógica de tentativas
+        await fetchProfileWithRetries();
       },
       
       updateUserProfile: (updates) => {

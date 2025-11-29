@@ -1,217 +1,247 @@
-// screens/Transport/TransportTabScreen.tsx (VERSÃO FINAL INTEGRADA COM API)
+// src/screens/Transport/TransportTabScreen.tsx (VERSÃO FINAL COM ANIMAÇÃO DE TOQUE E VIBRAÇÃO)
 
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, ActivityIndicator } from 'react-native';
-import { AlertTriangle, ChevronRight, Phone, Clock, AlertCircle } from '../../components/Icons';
-import { useUserStore } from '../../hooks/useUserStore';
-// --- AQUI ESTÁ A MUDANÇA ---
-import { fetchBusSchedules, BusSchedule } from '../../api/transportApi'; // Importa a função da API e o tipo
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, Modal } from 'react-native';
+import { ArrowLeft, Bus, Clock } from '../../components/Icons';
+import { fetchBusSchedules, BusSchedule } from '../../api/transportApi';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics'; // Importando a biblioteca de vibração
 
-// --- COMPONENTES DA TELA (sem alteração) ---
-const TimeChip = ({ time, isNext }) => (
-  <View style={[styles.timeChip, isNext && styles.nextTimeChip]}>
-    <Text style={[styles.timeText, isNext && styles.nextTimeText]}>{time}</Text>
-    {isNext && <Text style={styles.nextTag}>próximo</Text>}
-  </View>
-);
+const TRAVEL_TIME_MINUTES = 45;
+const APPROACH_TIME_MINUTES = 60;
 
-const LineCard = ({ schedule, currentTime }) => {
-  const getNextDeparture = () => {
-    // ... (lógica interna do card continua a mesma)
-    for (const timeStr of schedule.times_weekday) {
-      const [hour, minute] = timeStr.split(':').map(Number);
-      const departureTime = new Date(currentTime);
-      departureTime.setHours(hour, minute, 0, 0);
+// --- COMPONENTES AUXILIARES ---
 
-      if (departureTime > currentTime) {
-        const diffMs = departureTime.getTime() - currentTime.getTime();
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffMins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        let timeToGo = '';
-        if (diffHours > 0) timeToGo += `${diffHours}h `;
-        timeToGo += `${diffMins}min`;
-        
-        return { time: timeStr, timeToGo };
-      }
+const ClockCard = () => {
+    const [time, setTime] = useState(new Date());
+    useEffect(() => {
+        const timerId = setInterval(() => setTime(new Date()), 1000);
+        return () => clearInterval(timerId);
+    }, []);
+    return (
+        <View style={styles.clockContainer}><Clock size={16} color="#E0E7FF" /><Text style={styles.clockText}>{time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Text></View>
+    );
+};
+
+const BusDetailModal = ({ visible, onClose, departure }) => {
+  const progress = useSharedValue(0);
+  const trackWidth = useSharedValue(0); 
+
+  const animatedProgressStyle = useAnimatedStyle(() => ({ width: progress.value >= 0 ? `${progress.value}%` : '0%' }));
+  
+  const animatedBusStyle = useAnimatedStyle(() => {
+    if (trackWidth.value === 0) return {};
+    let positionPercentage = progress.value < 0 ? 100 + progress.value : progress.value;
+    const position = (positionPercentage / 100) * (trackWidth.value - 20);
+    return { transform: [{ translateX: position }] };
+  });
+
+  useEffect(() => {
+    let animationInterval;
+    const updateAnimation = () => {
+      if (!departure) return;
+      const now = new Date();
+      const { departureTime, arrivalTime, approachStartTime } = departure.times;
+      let currentProgress = now < approachStartTime ? -101 : (now >= arrivalTime ? 101 : (now < departureTime ? ((now - approachStartTime) / (departureTime - approachStartTime) * 100 - 100) : ((now - departureTime) / (arrivalTime - departureTime) * 100)));
+      progress.value = withTiming(currentProgress, { duration: 1000, easing: Easing.linear });
+    };
+    if (visible) {
+      setTimeout(() => {
+        updateAnimation();
+        animationInterval = setInterval(updateAnimation, 5000);
+      }, 100);
     }
-    return { time: null, timeToGo: null };
-  };
+    return () => clearInterval(animationInterval);
+  }, [visible, departure]);
 
-  const { time: nextTime, timeToGo } = getNextDeparture();
-  const statusStyles = { Funcionando: { header: '#D1FAE5', text: '#065F46', icon: '#10B981' }, Manutenção: { header: '#FEF3C7', text: '#92400E', icon: '#92400E' }, };
-  const style = statusStyles[schedule.status] || statusStyles['Manutenção'];
+  if (!departure) return null;
+  const { arrivalTimeString } = departure;
 
   return (
-    <View style={styles.lineCard}>
-      <View style={[styles.lineHeader, { backgroundColor: style.header }]}>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.lineTitle, { color: style.text }]}>{schedule.line_name}</Text>
-          <Text style={[styles.lineSubtitle, { color: style.text }]}>{schedule.itinerary}</Text>
-        </View>
-        {schedule.status === 'Funcionando' && timeToGo && (
-          <View style={styles.nextDepartureInfo}>
-            <Text style={styles.nextDepartureText}>Próxima em</Text>
-            <Text style={styles.nextDepartureTime}>{timeToGo}</Text>
+    <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
+      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} style={styles.modalContent}>
+          <Text style={styles.modalTitle}>{departure.line_name}</Text>
+          <Text style={styles.modalLineCode}>Linha: {departure.line_code}</Text>
+          <View style={styles.animationContainer}>
+            <View style={styles.animationEndpoints}><Text style={styles.animationText}>{departure.point_a}</Text><Text style={styles.animationText}>{departure.point_b}</Text></View>
+            <View style={styles.animationTrack} onLayout={(e) => { trackWidth.value = e.nativeEvent.layout.width; }}>
+              <Animated.View style={[styles.animationProgress, animatedProgressStyle]} />
+              <Animated.View style={[styles.busIcon, animatedBusStyle]}><Bus size={20} color="white" /></Animated.View>
+            </View>
+            <View style={styles.animationEndpoints}><Text style={styles.animationTime}>{departure.time}</Text><Text style={styles.animationTime}>{arrivalTimeString}</Text></View>
           </View>
-        )}
-      </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.contentTitle}>Horários de Partida</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.timesContainer}>
-          {schedule.times_weekday.map((time) => (
-            <TimeChip key={time} time={time} isNext={time === nextTime && schedule.status === 'Funcionando'} />
-          ))}
-        </ScrollView>
-        <View style={styles.detailsContainer}>
-          <View style={styles.detailItem}><Clock size={14} color="#555" /><Text style={styles.detailText}>Intervalo: {schedule.interval}</Text></View>
-          <TouchableOpacity style={styles.detailItem} onPress={() => Linking.openURL(`tel:${schedule.phone}`)}>
-            <Phone size={14} color="#555" /><Text style={styles.detailText}>{schedule.phone}</Text>
-          </TouchableOpacity>
-        </View>
-        {schedule.status === 'Manutenção' && (
-          <View style={styles.maintenanceInfo}>
-            <AlertCircle size={16} color={style.icon} />
-            <Text style={[styles.maintenanceText, { color: style.text }]}>Linha em manutenção - horários podem estar alterados</Text>
-          </View>
-        )}
-      </View>
-    </View>
+          <Text style={styles.modalInfo}>Esta é uma simulação em tempo real da posição do ônibus.</Text>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
   );
 };
 
+// --- CARD DE PARTIDA COM ANIMAÇÃO DE TOQUE ---
+const DepartureCard = React.memo(({ departure, onLongPress }) => {
+    const { arrivalTimeString, status } = departure;
+    const scale = useSharedValue(1); // Valor compartilhado para a animação de escala
 
-// --- TELA PRINCIPAL (COM A LÓGICA DE DADOS ATUALIZADA) ---
-export default function TransportTabScreen() {
-  const { selectedLoteamentoId } = useUserStore();
+    const statusInfo = {
+        approaching: { C: '#FFFBEB', T: '#B45309', B: '#FBBF24', label: 'Aproximando' },
+        in_transit: { C: '#F0FDF4', T: '#15803D', B: '#4ADE80', label: 'Em trânsito' },
+        finished: { C: '#F8FAFC', T: '#64748B', B: '#E2E8F0', label: 'Finalizado' },
+        waiting: { C: '#FFFFFF', T: '#4B5563', B: '#E5E7EB', label: 'Aguardando' },
+    };
+    const style = statusInfo[status] || statusInfo.waiting;
+    
+    // Estilo animado que aplica a transformação de escala
+    const animatedCardStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+    }));
+
+    // Funções para controlar a animação ao pressionar
+    const onPressIn = () => { scale.value = withSpring(1.03); };
+    const onPressOut = () => { scale.value = withSpring(1); };
+
+    return (
+        <TouchableOpacity 
+            activeOpacity={0.9} 
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
+            onLongPress={onLongPress}
+            delayLongPress={200} // Pequeno delay para o long press
+        >
+            <Animated.View style={[styles.card, { backgroundColor: style.C }, animatedCardStyle]}>
+                <View style={styles.statusIndicator(style.B)} />
+                <View style={styles.cardHeader}><Text style={styles.lineName} numberOfLines={1}>{departure.line_name} ({departure.line_code})</Text><Text style={[styles.statusText, {color: style.T}]}>{style.label}</Text></View>
+                <View style={styles.cardBody}>
+                    <View style={styles.timePoint_a}><Text style={styles.time}>{departure.time}</Text><Text style={styles.location} numberOfLines={1}>{departure.point_a}</Text></View>
+                    <View style={styles.durationContainer}><View style={styles.dotLine} /><Text style={styles.durationText}>{TRAVEL_TIME_MINUTES} min</Text><Bus size={16} color="#9CA3AF" /><View style={styles.dotLine} /></View>
+                    <View style={styles.timePoint_b}><Text style={styles.time}>{arrivalTimeString}</Text><Text style={styles.location} numberOfLines={1}>{departure.point_b}</Text></View>
+                </View>
+            </Animated.View>
+        </TouchableOpacity>
+    );
+});
+
+// --- TELA PRINCIPAL ---
+export default function TransportTabScreen({ navigation }) {
   const [schedules, setSchedules] = useState<BusSchedule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedDeparture, setSelectedDeparture] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    // Busca os dados do Supabase quando a tela carrega
-    const loadSchedules = async () => {
-      if (selectedLoteamentoId) {
-        setLoading(true);
-        const data = await fetchBusSchedules(selectedLoteamentoId);
-        setSchedules(data);
-        setLoading(false);
-      }
-    };
-    loadSchedules();
-  }, [selectedLoteamentoId]);
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000); 
+    const timer = setInterval(() => setCurrentTime(new Date()), 10000);
     return () => clearInterval(timer);
   }, []);
 
-  const formatTime = (date) => {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
+  // --- ALTERAÇÃO AQUI: Adicionando a vibração ---
+  const handleLongPress = (departure) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); // Vibração média
+    setSelectedDeparture(departure);
+    setModalVisible(true);
   };
 
+  useEffect(() => {
+    const loadSchedules = async () => {
+      setLoading(true);
+      const data = await fetchBusSchedules();
+      setSchedules(data);
+      setLoading(false);
+    };
+    loadSchedules();
+  }, []);
+
+  const allDepartures = useMemo(() => {
+    const departures = [];
+    const dayOfWeek = currentTime.getDay(); 
+    schedules.forEach(line => {
+      let timeString = '';
+      if (dayOfWeek === 0) timeString = line.times_sunday;
+      else if (dayOfWeek === 6) timeString = line.times_saturday;
+      else timeString = line.times_weekdays;
+
+      if (timeString && timeString !== 'Não informado' && timeString !== 'Não operacional') {
+        const times = timeString.match(/\b\d{2}:\d{2}\b/g) || [];
+        times.forEach(timeStr => {
+          const [hour, minute] = timeStr.trim().split(':').map(Number);
+          if(isNaN(hour) || isNaN(minute)) return;
+          const departureTime = new Date(currentTime);
+          departureTime.setHours(hour, minute, 0, 0);
+          const arrivalTime = new Date(departureTime.getTime() + TRAVEL_TIME_MINUTES * 60000);
+          const approachStartTime = new Date(departureTime.getTime() - APPROACH_TIME_MINUTES * 60000);
+          let status = currentTime >= arrivalTime ? 'finished' : (currentTime >= departureTime ? 'in_transit' : (currentTime >= approachStartTime ? 'approaching' : 'waiting'));
+          const arrivalTimeString = `${arrivalTime.getHours().toString().padStart(2, '0')}:${arrivalTime.getMinutes().toString().padStart(2, '0')}`;
+          departures.push({ id: `${line.id}-${timeStr}`, time: timeStr.trim(), ...line, arrivalTimeString, status, times: { departureTime, arrivalTime, approachStartTime } });
+        });
+      }
+    });
+    return departures.sort((a, b) => {
+      const statusOrder = { approaching: 1, in_transit: 2, waiting: 3, finished: 4 };
+      if (statusOrder[a.status] !== statusOrder[b.status]) return statusOrder[a.status] - statusOrder[b.status];
+      return a.times.departureTime - b.times.departureTime;
+    });
+  }, [schedules, currentTime]);
+
   return (
-    <ScrollView style={styles.container}>
-      {/* O seu header e a UI continuam os mesmos */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Transporte Público</Text>
-        <View style={styles.headerStatus}>
-          <Text style={styles.statusText}>Operação parcial</Text>
-          <Text style={styles.timeTextHeader}>Agora {formatTime(currentTime)}</Text>
-        </View>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.header}><TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}><ArrowLeft size={24} color="#FFF" /></TouchableOpacity><View><Text style={styles.headerTitle}>Transporte Público</Text><Text style={styles.headerSubtitle}>Próximas partidas</Text></View><ClockCard /></View>
+      <View style={styles.filterBar}><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersContainer}><TouchableOpacity style={[styles.filterChip, styles.filterChipActive]}><Text style={[styles.filterText, styles.filterTextActive]}>Todos</Text></TouchableOpacity><TouchableOpacity style={styles.filterChip}><Text style={styles.filterText}>Brasília</Text></TouchableOpacity><TouchableOpacity style={styles.filterChip}><Text style={styles.filterText}>Taguatinga</Text></TouchableOpacity></ScrollView></View>
       
-      {/* ... (resto da UI: seletor de região, caixa de informação) ... */}
-       <View style={styles.section}>
-        <TouchableOpacity style={styles.selector}>
-          <View>
-            <Text style={styles.selectorLabel}>Selecionar Região</Text>
-            <Text style={styles.selectorValue}>Santo Antônio do Descoberto - GO</Text>
-          </View>
-          <ChevronRight size={22} color="#888" />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.section}>
-        <View style={styles.infoBox}>
-          <AlertTriangle size={20} color="#D97706" />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={styles.infoBoxTitle}>Informação Importante</Text>
-            <Text style={styles.infoBoxText}>Os horários podem sofrer alterações. Recomendamos confirmar pelo telefone antes da viagem.</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* --- RENDERIZAÇÃO DINÂMICA --- */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Linhas Disponíveis ({schedules.length})</Text>
-        {loading ? (
-          <ActivityIndicator size="large" color="#339949ff" style={{ marginTop: 20 }} />
-        ) : (
-          schedules.length > 0 ? (
-            schedules.map(schedule => (
-              <LineCard key={schedule.id} schedule={schedule} currentTime={currentTime} />
+      {loading ? (<ActivityIndicator size="large" color="#4F46E5" style={{ flex: 1 }} />) : (
+        <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 100}}>
+          {allDepartures.length > 0 ? (
+            allDepartures.map((departure, index) => (
+              <DepartureCard key={`${departure.id}-${index}`} departure={departure} onLongPress={() => handleLongPress(departure)} />
             ))
-          ) : (
-            <Text style={styles.emptyText}>Nenhuma linha de transporte encontrada para este loteamento.</Text>
-          )
-        )}
-      </View>
+          ) : (<Text style={styles.emptyText}>Nenhum próximo ônibus foi encontrado para hoje.</Text>)}
+        </ScrollView>
+      )}
 
-       <View style={[styles.section, { marginBottom: 40 }]}>
-        <View style={styles.helpBox}>
-          <Phone size={24} color="#2563EB" />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={styles.helpBoxTitle}>Dúvidas sobre Transporte?</Text>
-            <Text style={styles.helpBoxText}>Nossa equipe está pronta para ajudar com informações sobre rotas, horários e mais.</Text>
-            <Text style={styles.helpBoxPhone}>(61) 3333-4444</Text>
-          </View>
-        </View>
-      </View>
-    </ScrollView>
+      <BusDetailModal visible={isModalVisible} onClose={() => setModalVisible(false)} departure={selectedDeparture} />
+    </SafeAreaView>
   );
 }
 
-// --- ESTILOS (com a adição do 'emptyText') ---
+// --- ESTILOS ---
 const styles = StyleSheet.create({
-  // ... (todos os seus estilos anteriores)
-  container: { flex: 1, backgroundColor: '#F4F7FC' },
-  header: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 },
-  headerTitle: { fontSize: 26, fontWeight: 'bold', color: '#1A202C' },
-  headerStatus: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  statusText: { backgroundColor: '#F59E0B', color: 'white', fontWeight: 'bold', fontSize: 12, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12, overflow: 'hidden' },
-  timeTextHeader: { marginLeft: 8, color: '#4A5568', fontWeight: '500' },
-  section: { paddingHorizontal: 20, marginTop: 20 },
-  selector: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' },
-  selectorLabel: { color: '#718096', fontSize: 12 },
-  selectorValue: { color: '#1A202C', fontSize: 16, fontWeight: '600' },
-  infoBox: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#FEF3C7', padding: 16, borderRadius: 12 },
-  infoBoxTitle: { fontWeight: 'bold', color: '#92400E' },
-  infoBoxText: { color: '#92400E', marginTop: 2, lineHeight: 18 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1A202C', marginBottom: 12 },
-  lineCard: { backgroundColor: 'white', borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E2E8F0', overflow: 'hidden' },
-  lineHeader: { padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  lineTitle: { fontSize: 16, fontWeight: 'bold' },
-  lineSubtitle: { fontSize: 13, opacity: 0.9 },
-  nextDepartureInfo: { alignItems: 'flex-end' },
-  nextDepartureText: { fontSize: 12, color: '#4A5568' },
-  nextDepartureTime: { fontSize: 16, fontWeight: 'bold', color: '#1A202C' },
-  cardContent: { padding: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
-  contentTitle: { fontSize: 14, fontWeight: '600', color: '#4A5568', marginBottom: 12 },
-  timesContainer: { marginLeft: -4 },
-  timeChip: { backgroundColor: '#F1F5F9', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12, marginRight: 8, alignItems: 'center' },
-  nextTimeChip: { backgroundColor: '#DBEAFE', borderWidth: 1, borderColor: '#60A5FA' },
-  timeText: { color: '#334155', fontWeight: '600' },
-  nextTimeText: { color: '#1E40AF' },
-  nextTag: { color: '#1D4ED8', fontSize: 10, fontWeight: 'bold', marginTop: 2, textTransform: 'uppercase' },
-  detailsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
-  detailItem: { flexDirection: 'row', alignItems: 'center' },
-  detailText: { marginLeft: 6, color: '#4A5568' },
-  maintenanceInfo: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF3C7', padding: 12, borderRadius: 8, marginTop: 16 },
-  maintenanceText: { marginLeft: 8, fontSize: 12, flex: 1 },
-  helpBox: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#DBEAFE', padding: 16, borderRadius: 12 },
-  helpBoxTitle: { fontWeight: 'bold', color: '#1E3A8A' },
-  helpBoxText: { color: '#1E40AF', marginTop: 2, lineHeight: 18, marginBottom: 8 },
-  helpBoxPhone: { color: '#1E3A8A', fontWeight: 'bold', fontSize: 16 },
-  emptyText: { textAlign: 'center', color: '#6B7280', fontStyle: 'italic', paddingVertical: 20 },
+  safeArea: { flex: 1, backgroundColor: '#F3F4F6' },
+  header: { backgroundColor: '#4F46E5', paddingTop: 10, paddingHorizontal: 20, paddingBottom: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  backButton: { padding: 4 },
+  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFF', textAlign: 'center' },
+  headerSubtitle: { fontSize: 13, color: '#E0E7FF', textAlign: 'center', marginTop: 2 },
+  clockContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 },
+  clockText: { color: 'white', fontWeight: 'bold', marginLeft: 6 },
+  filterBar: { backgroundColor: '#F3F4F6', paddingVertical: 12 },
+  filtersContainer: { paddingHorizontal: 16, gap: 8 },
+  filterChip: { backgroundColor: 'white', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: '#E5E7EB' },
+  filterChipActive: { backgroundColor: '#4338CA', borderColor: '#4338CA' },
+  filterText: { fontWeight: '600', color: '#4B5563' },
+  filterTextActive: { color: 'white' },
+  container: { flex: 1, paddingHorizontal: 16, paddingTop: 8 },
+  card: { borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: 'transparent', overflow: 'hidden' }, // Removida borda padrão
+  statusIndicator: (color) => ({ position: 'absolute', top: 0, left: 0, bottom: 0, width: 6, backgroundColor: color }),
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6', marginLeft: 10 },
+  lineName: { fontSize: 15, fontWeight: 'bold', color: '#111827', flex: 1, marginRight: 8 },
+  statusText: { fontSize: 12, fontWeight: 'bold', textTransform: 'capitalize' },
+  cardBody: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginLeft: 10 },
+  timePoint_a: { alignItems: 'flex-start', flex: 1 },
+  timePoint_b: { alignItems: 'flex-end', flex: 1 },
+  time: { fontSize: 18, fontWeight: 'bold', color: '#111827' },
+  location: { fontSize: 13, color: '#6B7280' },
+  durationContainer: { alignItems: 'center', marginHorizontal: 10 },
+  dotLine: { width: 1, height: 8, backgroundColor: '#D1D5DB' },
+  durationText: { fontSize: 12, color: '#6B7280', marginVertical: 4 },
+  emptyText: { textAlign: 'center', marginTop: 50, color: '#6B7280', fontSize: 16, paddingHorizontal: 20, lineHeight: 24 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalContent: { backgroundColor: 'white', borderRadius: 20, padding: 24, width: '100%', elevation: 10 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#111827', textAlign: 'center' },
+  modalLineCode: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 24 },
+  animationContainer: { marginBottom: 20 },
+  animationEndpoints: { flexDirection: 'row', justifyContent: 'space-between' },
+  animationText: { fontSize: 12, color: '#4B5563', fontWeight: '500' },
+  animationTime: { fontSize: 14, color: '#111827', fontWeight: 'bold' },
+  animationTrack: { height: 10, width: '100%', backgroundColor: '#E5E7EB', borderRadius: 5, marginVertical: 4, justifyContent: 'center' },
+  animationProgress: { height: '100%', backgroundColor: '#4F46E5', borderRadius: 5 },
+  busIcon: { position: 'absolute', width: 20, height: 20, borderRadius: 10, backgroundColor: '#4338CA', justifyContent: 'center', alignItems: 'center' },
+  modalInfo: { fontSize: 12, color: '#9CA3AF', textAlign: 'center', fontStyle: 'italic', marginTop: 16 }
 });

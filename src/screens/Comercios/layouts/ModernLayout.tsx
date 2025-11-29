@@ -128,7 +128,7 @@ export default function ModernLayout({ commerce, navigation }) {
 
 // Estilos
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white' },
+  container: { flex: 1, backgroundColor: 'white', paddingBottom: 60, marginBottom: 75 },
   headerImageContainer: { height: 250, backgroundColor: '#E5E7EB' },
   headerImage: { width: '100%', height: '100%' },
   headerOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'space-between' },

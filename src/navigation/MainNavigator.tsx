@@ -1,24 +1,20 @@
-// src/navigation/MainNavigator.tsx
+// src/navigation/MainNavigator.tsx (VERSÃO CORRIGIDA COM HEADER E SWIPE)
 
-import React, { useState } from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React, { useState, useRef } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { BottomSheetModal, BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // --- Importações de Telas e Navegadores ---
-
-// Abas Principais
 import HomeTabScreen from '../screens/Home/HomeTabScreen';
 import ComerciosTabScreen from '../screens/Comercios/ComerciosTabScreen';
 import GamificationTabScreen from '../screens/Gamification/GamificationTabScreen';
 import MapTabScreen from '../screens/Map/MapTabScreen';
-
-// Telas da Pilha "Conta"
 import ProfileTabScreen from '../screens/Profile/ProfileTabScreen';
 import EditProfileScreen from '../screens/Profile/EditProfileScreen';
 import AchievementsScreen from '../screens/Profile/AchievementsScreen';
 import SettingsScreen from '../screens/Profile/SettingsScreen';
-
-// Telas Adicionais
 import CommerceDetailScreen from '../screens/Comercios/CommerceDetailScreen';
 import CourtSchedulingScreen from '../screens/scheduling/CourtSchedulingScreen';
 import CourtBookingDetailScreen from '../screens/scheduling/CourtBookingDetailScreen';
@@ -29,23 +25,18 @@ import HealthTabScreen from '../screens/Health/HealthTabScreen';
 import EmpreendimentosScreen from '../screens/Home/EmpreendimentosScreen';
 import LoteamentoMediaScreen from '../screens/Home/LoteamentoMediaScreen';
 import OperatingHoursScreen from '../screens/info/OperatingHoursScreen';
-
-// Navegador da Tela "Mais"
+import FeedStackNavigator from './FeedStackNavigator';
 import MoreStackNavigator from './MoreStackNavigator';
-
-// Componentes e Configurações de Navegação
 import { CustomTabBar } from './CustomTabBar';
-import CustomHeader from '../components/layout/CustomHeader'; // Importa o header
-import NotificationsModal from '../components/layout/NotificationsModal'; // Importa o modal
+import CustomHeader from '../components/layout/CustomHeader';
+import NotificationsModal from '../components/layout/NotificationsModal';
+import TransportTabScreen from '../screens/Transport/TransportTabScreen';
+import PrivacyPolicyScreen from '../screens/Profile/PrivacyPolicyScreen';
 
-const Tab = createBottomTabNavigator();
+const Tab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
 
-// --- Definição das Pilhas de Navegação (Stacks) ---
-
-// As Stacks individuais (HomeStack, ComerciosStack, etc.) permanecem as mesmas
-// que você já tem no seu arquivo. Vou mantê-las aqui para o contexto.
-
+// --- Stacks de Navegação ---
 const HomeStack = () => (
   <Stack.Navigator>
     <Stack.Screen name="HomeTab" component={HomeTabScreen} options={{ headerShown: false }} />
@@ -53,13 +44,14 @@ const HomeStack = () => (
     <Stack.Screen name="CourtBookingDetail" component={CourtBookingDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="MyBookings" component={MyBookingsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="CommerceDetail" component={CommerceDetailScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="Support" component={SupportScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Placeholder" component={PlaceholderScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Health" component={HealthTabScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Empreendimentos" component={EmpreendimentosScreen} options={{ headerShown: false }} />
     <Stack.Screen name="LoteamentoMedia" component={LoteamentoMediaScreen} options={{ headerShown: false }} />
     <Stack.Screen name="OperatingHours" component={OperatingHoursScreen} options={{ headerShown: false }} />
     <Stack.Screen name="More" component={MoreStackNavigator} options={{ headerShown: false }} />
+    <Stack.Screen name="Mapa" component={MapTabScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="Transport" component={TransportTabScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 );
 
@@ -71,15 +63,9 @@ const ComerciosStack = () => (
 );
 
 const GamificacaoStack = () => (
-    <Stack.Navigator>
-        <Stack.Screen name="GamificacaoTab" component={GamificationTabScreen} options={{ headerShown: false }}/>
-    </Stack.Navigator>
-);
-
-const MapaStack = () => (
-    <Stack.Navigator>
-        <Stack.Screen name="MapTab" component={MapTabScreen} options={{ headerShown: false }} />
-    </Stack.Navigator>
+  <Stack.Navigator>
+    <Stack.Screen name="GamificacaoTab" component={GamificationTabScreen} options={{ headerShown: false }} />
+  </Stack.Navigator>
 );
 
 const ProfileStack = () => (
@@ -88,49 +74,62 @@ const ProfileStack = () => (
     <Stack.Screen name="EditProfile" component={EditProfileScreen} />
     <Stack.Screen name="Achievements" component={AchievementsScreen} />
     <Stack.Screen name="Settings" component={SettingsScreen} />
+    <Stack.Screen name="Support" component={SupportScreen} />
+    
+    {/* NOVA TELA ADICIONADA AQUI */}
+    <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+
     <Stack.Screen name="Placeholder" component={PlaceholderScreen} />
   </Stack.Navigator>
 );
 
-// --- Navegador Principal (Abas) ---
+// --- Componente que contém as abas com swipe ---
+const TabNavigator = () => (
+  <Tab.Navigator
+    initialRouteName="Home"
+    tabBarPosition="bottom"
+    screenOptions={{
+      swipeEnabled: true,
+    }}
+    tabBar={props => <CustomTabBar {...props} />}
+  >
+    <Tab.Screen name="Home" component={HomeStack} />
+    <Tab.Screen name="Comercios" component={ComerciosStack} />
+    <Tab.Screen name="Feed" component={FeedStackNavigator} />
+    <Tab.Screen name="Gamificacao" component={GamificacaoStack} />
+    <Tab.Screen name="Conta" component={ProfileStack} />
+  </Tab.Navigator>
+);
 
-export default function MainNavigator() {
-  // 1. Trazemos o controle do modal para o navegador principal.
-  const [notificationsVisible, setNotificationsVisible] = useState(false);
-  const openNotifications = () => setNotificationsVisible(true);
-  const closeNotifications = () => setNotificationsVisible(false);
+const AppContent = () => {
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const openNotifications = () => {
+    bottomSheetModalRef.current?.present();
+  };
 
   return (
     <>
-      <Tab.Navigator
-        initialRouteName="Home"
-        // 2. Usamos a prop 'screenOptions' para definir um header customizado para TODAS as abas.
-        screenOptions={{
-          // A função 'header' recebe as props de navegação e retorna o nosso componente de cabeçalho.
-          // Passamos a ele a função para abrir o modal.
-          header: () => <CustomHeader onNotificationsPress={openNotifications} />,
-        }}
-        tabBar={props => <CustomTabBar {...props} />}
-      >
-        {/* As suas abas */}
-        <Tab.Screen name="Home" component={HomeStack} />
-        <Tab.Screen name="Comercios" component={ComerciosStack} />
-        <Tab.Screen name="Gamificacao" component={GamificacaoStack} />
-        {/* 3. Para a aba do Mapa, que não tem header, nós sobrescrevemos a opção */}
-        <Tab.Screen
-          name="Mapa"
-          component={MapaStack}
-          options={{ headerShown: false }} // Esconde o header apenas para esta aba
+      <Stack.Navigator>
+        <Stack.Screen
+          name="MainTabs"
+          component={TabNavigator}
+          options={{
+            header: () => <CustomHeader onNotificationsPress={openNotifications} />
+          }}
         />
-        <Tab.Screen name="Conta" component={ProfileStack} />
-      </Tab.Navigator>
-
-      {/* 4. Renderizamos o modal aqui, no nível mais alto, para que ele possa
-           aparecer por cima de qualquer tela. */}
-      <NotificationsModal
-        isVisible={notificationsVisible}
-        onClose={closeNotifications}
-      />
+      </Stack.Navigator>
+      <NotificationsModal ref={bottomSheetModalRef} />
     </>
   );
-};
+}
+
+export default function MainNavigator() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
+        <AppContent />
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
+  );
+}
