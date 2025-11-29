@@ -24,7 +24,7 @@ interface MapLocation {
   type: 'commerce' | 'poi';
   rating?: number;
   phone?: string;
-  image_url?: string;
+  image_url: string;
 }
 
 export default function MapTabScreen() {

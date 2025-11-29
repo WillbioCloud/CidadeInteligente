@@ -1,12 +1,13 @@
 // src/screens/Profile/ProfileTabScreen.tsx
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image, Switch } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useUserStore } from '../../hooks/useUserStore';
 import { supabase } from '../../lib/supabase';
-import { User, ChevronRight, LogOut, Building, Award, Settings, Star, Heart, Sun, Moon, HelpCircle } from 'lucide-react-native';
-import { LEVELS_DATA } from '../../data/levels.data';
+import { User, ChevronRight, LogOut, Building, Award, Settings, Star, Heart, Moon, HelpCircle } from 'lucide-react-native';
+
+// O import de LEVELS_DATA foi removido pois não é mais necessário
 
 // Componente para um item do menu
 const MenuItem = ({ icon: Icon, label, onPress }) => (
@@ -22,15 +23,12 @@ export default function ProfileTabScreen() {
   const { userProfile, clearStore } = useUserStore();
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const userPoints = userProfile?.points || 0;
-  const userLevel = useMemo(() => {
-    let currentLvl = 1;
-    for (const level of Object.keys(LEVELS_DATA).map(Number).sort((a, b) => a - b)) {
-        if (userPoints >= LEVELS_DATA[level].pointsRequired) { currentLvl = level; }
-        else { break; }
-    }
-    return currentLvl;
-  }, [userPoints]);
+  // --- ALTERAÇÃO AQUI ---
+  // Buscamos o nível e o XP diretamente do perfil do usuário,
+  // garantindo a sincronia com o resto do app.
+  const userLevel = userProfile?.level || 1;
+  const userXp = userProfile?.xp || 0;
+  // A lógica antiga com useMemo foi removida.
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -47,7 +45,6 @@ export default function ProfileTabScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Seção de Perfil */}
         <View style={styles.profileSection}>
-            {/* --- AVATAR ATUALIZADO AQUI --- */}
             <View style={styles.avatar}>
                 {userProfile.avatar_url ? (
                     <Image source={{ uri: userProfile.avatar_url }} style={styles.avatarImage} />
@@ -63,6 +60,7 @@ export default function ProfileTabScreen() {
                 <Text style={styles.statLabel}>NÍVEL</Text>
                 <View style={styles.statValueContainer}>
                     <Star size={20} color="#166534" />
+                    {/* --- VALOR ATUALIZADO --- */}
                     <Text style={styles.statValue}>{userLevel}</Text>
                 </View>
             </View>
@@ -71,7 +69,8 @@ export default function ProfileTabScreen() {
                 <Text style={styles.statLabel}>XP</Text>
                  <View style={styles.statValueContainer}>
                     <Heart size={20} color="#166534" />
-                    <Text style={styles.statValue}>{userPoints}</Text>
+                    {/* --- VALOR ATUALIZADO --- */}
+                    <Text style={styles.statValue}>{userXp}</Text>
                 </View>
             </View>
         </View>
@@ -79,7 +78,7 @@ export default function ProfileTabScreen() {
         {/* Seção CONTA */}
         <Text style={styles.sectionTitle}>CONTA</Text>
         <View style={styles.menuContainer}>
-            <MenuItem icon={Building} label="Meus Empreendimentos" onPress={() => {}} />
+            <MenuItem icon={Building} label="Meus Empreendimentos" onPress={() => navigation.navigate('Empreendimentos')} />
             <MenuItem icon={Award} label="Minhas Conquistas" onPress={() => navigation.navigate('Achievements')} />
             <MenuItem icon={Settings} label="Editar Perfil" onPress={() => navigation.navigate('EditProfile')} />
         </View>
@@ -110,7 +109,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { alignItems: 'center', paddingVertical: 16 },
   headerTitle: { fontSize: 18, fontWeight: '600' },
-  scrollContent: { paddingHorizontal: 16, paddingBottom: 40 },
+  scrollContent: { paddingHorizontal: 16, paddingBottom: 80 },
   profileSection: { alignItems: 'center', marginVertical: 24 },
   avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
   avatarImage: { width: '100%', height: '100%', borderRadius: 40 },

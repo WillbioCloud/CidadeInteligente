@@ -23,7 +23,7 @@ export function CustomTabBar({ state, descriptors, navigation }) {
     return null;
   }
 
-  const defaultTheme = THEME_COLORS['dark_blue'];
+  const defaultTheme = THEME_COLORS['green'];
   let theme = defaultTheme;
   const colorName = LOTEAMENTOS_CONFIG[selectedLoteamentoId!]?.color;
   if(colorName && THEME_COLORS[colorName]) {
