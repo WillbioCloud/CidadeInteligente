@@ -12,5 +12,9 @@ export {
   User, X, Settings, LogOut, PlusCircle, Map, Phone, AlertCircle,
   ChevronDown, Info, Store, ExternalLink, ArrowLeft, BookOpen,
   Bookmark, Share2, Search, Lock, Trophy, Target, Gift, Crown, Zap,
+<<<<<<< HEAD
   Award, HelpCircle, Sun, Leaf, BarChart2, Instagram,
+=======
+  Award, HelpCircle, Sun, Leaf, BarChart2
+>>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
 } from 'lucide-react-native';
