@@ -1,10 +1,7 @@
-// src/navigation/MainNavigator.tsx
-
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { BottomSheetModal, BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // --- Importações de Telas e Navegadores ---
 import HomeTabScreen from '../screens/Home/HomeTabScreen';
@@ -123,10 +120,8 @@ const AppContent = () => {
 
 export default function MainNavigator() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <AppContent />
-      </BottomSheetModalProvider>
-    </GestureHandlerRootView>
+    <BottomSheetModalProvider>
+      <AppContent />
+    </BottomSheetModalProvider>
   );
 }

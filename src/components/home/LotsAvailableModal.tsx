@@ -1,10 +1,20 @@
-// src/components/home/LotsAvailableModal.tsx (VERSÃO FINAL COM CARD EXPANSÍVEL)
-
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, FlatList, ActivityIndicator, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  Modal, 
+  TouchableOpacity, 
+  FlatList, 
+  ActivityIndicator, 
+  LayoutAnimation, 
+  Platform, 
+  UIManager 
+} from 'react-native';
 import { X, Building, University, Leaf, Flower, Sunset, Home, Mountain, Tree, ChevronDown } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 
+// Ativa animações de layout no Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -25,19 +35,39 @@ interface LoteData {
   stages?: LoteStage[];
 }
 
-// ... (LOTE_ICONS, LOTE_COLORS, getIcon, getIconBgColor continuam os mesmos)
-const LOTE_ICONS = {
-  'Cidade Inteligente': Building, 'Cidade Universitária': University, 'Cidade Verde': Leaf, 'Cidade das Flores': Flower, 'Setor Lago Sul': Sunset, 'Residencial Morada Nobre': Home, 'Caminho do Lago': Mountain, 'Parque Flamboyant': Tree,
+// Configuração de ícones e cores para cada loteamento
+const LOTE_ICONS: Record<string, any> = {
+  'Cidade Inteligente': Building, 
+  'Cidade Universitária': University, 
+  'Cidade Verde': Leaf, 
+  'Cidade das Flores': Flower, 
+  'Setor Lago Sul': Sunset, 
+  'Residencial Morada Nobre': Home, 
+  'Caminho do Lago': Mountain, 
+  'Parque Flamboyant': Tree,
 };
-const LOTE_COLORS = {
-    'Cidade Inteligente': '#60A5FA', 'Cidade Universitária': '#C084FC', 'Cidade Verde': '#4ADE80', 'Cidade das Flores': '#F472B6', 'Setor Lago Sul': '#FBBF24', 'Residencial Morada Nobre': '#FB923C', 'Caminho do Lago': '#38BDF8', 'Parque Flamboyant': '#8B5CF6', default: '#A1A1AA'
+
+const LOTE_COLORS: Record<string, string> = {
+    'Cidade Inteligente': '#60A5FA', 
+    'Cidade Universitária': '#C084FC', 
+    'Cidade Verde': '#4ADE80', 
+    'Cidade das Flores': '#F472B6', 
+    'Setor Lago Sul': '#FBBF24', 
+    'Residencial Morada Nobre': '#FB923C', 
+    'Caminho do Lago': '#38BDF8', 
+    'Parque Flamboyant': '#8B5CF6', 
+    default: '#A1A1AA'
 };
-const getIcon = (name) => { const Icon = LOTE_ICONS[name] || Building; return <Icon color="white" size={24} />; }
-const getIconBgColor = (name) => LOTE_COLORS[name] || LOTE_COLORS.default;
 
+const getIcon = (name: string) => { 
+    const Icon = LOTE_ICONS[name] || Building; 
+    return <Icon color="white" size={24} />; 
+}
 
-// --- NOVO Componente para o item da lista, agora com lógica de expansão ---
-const LoteamentoItem = ({ item, expandedId, setExpandedId }) => {
+const getIconBgColor = (name: string) => LOTE_COLORS[name] || LOTE_COLORS.default;
+
+// Componente para o item da lista com lógica de expansão
+const LoteamentoItem = ({ item, expandedId, setExpandedId }: { item: LoteData, expandedId: string | null, setExpandedId: (id: string | null) => void }) => {
   const isMultiStage = item.stages && item.stages.length > 0;
   const isExpanded = expandedId === item.id;
 
@@ -70,7 +100,7 @@ const LoteamentoItem = ({ item, expandedId, setExpandedId }) => {
 
       {isExpanded && isMultiStage && (
         <View style={styles.stagesContainer}>
-          {item.stages.map((stage, index) => (
+          {item.stages!.map((stage, index) => (
             <View key={index} style={styles.stageRow}>
               <View>
                 <Text style={styles.stageName}>{stage.name}</Text>
@@ -87,8 +117,12 @@ const LoteamentoItem = ({ item, expandedId, setExpandedId }) => {
   );
 };
 
+interface LotsAvailableModalProps {
+    isVisible: boolean;
+    onClose: () => void;
+}
 
-export const LotsAvailableModal = ({ isVisible, onClose }) => {
+export const LotsAvailableModal = ({ isVisible, onClose }: LotsAvailableModalProps) => {
   const [loteamentos, setLoteamentos] = useState<LoteData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -98,20 +132,24 @@ export const LotsAvailableModal = ({ isVisible, onClose }) => {
       const fetchLotsData = async () => {
         setIsLoading(true);
         try {
-          // A query agora busca a nova coluna 'stages'
-          const { data, error } = await supabase.from('loteamentos').select('id, name, available_lots, total_lots, city, stages').order('name', { ascending: true });
+          const { data, error } = await supabase
+            .from('loteamentos')
+            .select('id, name, available_lots, total_lots, city, stages')
+            .order('name', { ascending: true });
+            
           if (error) throw error;
+          
           if (data) setLoteamentos(data);
         } catch (error) {
           console.error("Erro ao buscar dados para o modal:", error);
-          alert('Não foi possível carregar os dados dos lotes.');
+          // Opcional: mostrar toast de erro
         } finally {
           setIsLoading(false);
         }
       };
       fetchLotsData();
     } else {
-      setExpandedId(null); // Reseta o card expandido ao fechar o modal
+      setExpandedId(null);
     }
   }, [isVisible]);
   
@@ -126,19 +164,26 @@ export const LotsAvailableModal = ({ isVisible, onClose }) => {
           <View style={styles.header}>
             <Text style={styles.title}>Lotes Disponíveis por Loteamento</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={15} color="#6B7280" />
+              <X size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
+          
           {isLoading ? (
-            <ActivityIndicator size="large" color="#16A34A" style={{flex: 1}}/>
+            <ActivityIndicator size="large" color="#059669" style={{flex: 1}}/>
           ) : (
             <>
               <FlatList
                 data={loteamentos}
-                renderItem={({ item }) => <LoteamentoItem item={item} expandedId={expandedId} setExpandedId={setExpandedId} />}
+                renderItem={({ item }) => (
+                    <LoteamentoItem 
+                        item={item} 
+                        expandedId={expandedId} 
+                        setExpandedId={setExpandedId} 
+                    />
+                )}
                 keyExtractor={item => item.id}
                 contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
-                extraData={expandedId} // Garante que a lista renderize novamente quando um item expande
+                extraData={expandedId}
               />
               <View style={styles.footer}>
                 <Text style={styles.footerTitle}>Total Geral:</Text>
@@ -156,19 +201,20 @@ export const LotsAvailableModal = ({ isVisible, onClose }) => {
 };
 
 const styles = StyleSheet.create({
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContainer: { height: '85%', backgroundColor: '#F8FAFC', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingVertical: 8 },
   header: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 16, marginBottom: 8 },
-  title: { fontSize: 18, fontWeight: 'bold', color: '#16A34A', flex: 1, textAlign: 'center', marginRight: 40 },
-  closeButton: { position: 'absolute', right: 16, top: 16, backgroundColor: '#F1F5F9', borderRadius: 16, padding: 8 },
+  title: { fontSize: 18, fontWeight: 'bold', color: '#059669', flex: 1, textAlign: 'center', marginLeft: 40 }, // Compensar o botão fechar para centrar
+  closeButton: { padding: 8, backgroundColor: '#F1F5F9', borderRadius: 20 },
   itemWrapper: {
     backgroundColor: 'white',
     borderRadius: 16,
     marginBottom: 12,
-    elevation: 1,
+    elevation: 2,
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
     overflow: 'hidden',
   },
   itemContainer: {
@@ -211,7 +257,7 @@ const styles = StyleSheet.create({
   },
   footer: { padding: 24, borderTopWidth: 1, borderTopColor: '#E2E8F0', backgroundColor: 'white' },
   footerTitle: { fontSize: 16, fontWeight: 'bold', color: '#334155' },
-  footerTotal: { fontSize: 16, fontWeight: 'bold', color: '#16A34A', position: 'absolute', right: 24, top: 24 },
+  footerTotal: { fontSize: 16, fontWeight: 'bold', color: '#059669', position: 'absolute', right: 24, top: 24 },
   progressContainer: { height: 8, backgroundColor: '#E2E8F0', borderRadius: 4, overflow: 'hidden', marginTop: 8 },
-  progressBar: { height: '100%', backgroundColor: '#22C55E', borderRadius: 4 },
+  progressBar: { height: '100%', backgroundColor: '#059669', borderRadius: 4 },
 });

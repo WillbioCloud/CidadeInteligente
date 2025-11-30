@@ -1,104 +1,119 @@
-// src/styles/designSystem.ts
+import { Dimensions, Platform } from 'react-native';
 
-import { StyleSheet } from 'react-native';
+const { width, height } = Dimensions.get('window');
 
+export const colors = {
+  primary: '#059669', // Emerald 600
+  primaryDark: '#047857', // Emerald 700
+  primaryLight: '#10B981', // Emerald 500
+  primaryBg: '#ECFDF5', // Emerald 50
 
-const PALETTE = {
-  blue: '#4A90E2',
-  green: '#50E3C2',
-  orange: '#F5A623',
-  red: '#D0021B',
-  black: '#121212',
-  gray_dark: '#555555',
-  gray_medium: '#888888',
-  gray_light: '#CCCCCC',
-  gray_extralight: '#F4F5F7',
-  white: '#FFFFFF',
-  dark_blue: '#1E3A8A',
-  light_blue: '#3B82F6',
+  secondary: '#3B82F6', // Blue 500
+  secondaryDark: '#2563EB', // Blue 600
+  secondaryLight: '#60A5FA', // Blue 400
+  secondaryBg: '#EFF6FF', // Blue 50
+
+  background: '#FFFFFF',
+  surface: '#F9FAFB', // Gray 50
+  surfaceHighlight: '#F3F4F6', // Gray 100
+
+  text: {
+    primary: '#111827', // Gray 900
+    secondary: '#4B5563', // Gray 600
+    tertiary: '#9CA3AF', // Gray 400
+    inverted: '#FFFFFF',
+  },
+
+  status: {
+    success: '#10B981',
+    error: '#EF4444',
+    warning: '#F59E0B',
+    info: '#3B82F6',
+  },
+
+  border: '#E5E7EB', // Gray 200
+  icon: '#6B7280', // Gray 500
 };
 
-// 2. Temas de Cores para os Loteamentos
-export const THEME_COLORS = {
-  orange: { primary: '#F97316', accent: '#FB923C', light: '#FFF7ED', gradient: ['#F97316', '#EA580C'] },
-  red: { primary: '#EF4444', accent: '#F87171', light: '#FEF2F2', gradient: ['#EF4444', '#DC2626'] },
-  green: { primary: '#22C55E', accent: '#4ADE80', light: '#F0FDF4', gradient: ['#22C55E', '#16A34A'] },
-  dark_blue: { primary: '#3B82F6', accent: '#60A5FA', light: '#EFF6FF', gradient: ['#3B82F6', '#2563EB'] },
-  light_blue: { primary: '#0EA5E9', accent: '#38BDF8', light: '#F0F9FF', gradient: ['#0EA5E9', '#0284C7'] },
-  purple: { primary: '#8B5CF6', accent: '#A78BFA', light: '#F5F3FF', gradient: ['#8B5CF6', '#7C3AED'] },
-  brown: { primary: '#A16207', accent: '#CA8A04', light: '#FEFCE8', gradient: ['#A16207', '#854D0E'] },
+export const spacing = {
+  xs: 4,
+  s: 8,
+  m: 16,
+  l: 24,
+  xl: 32,
+  xxl: 48,
 };
 
-// 3. Constantes de Espaçamento e Fontes
-
-export const SPACING = {
-  xs: 4, s: 8, m: 16, l: 24, xl: 40,
+export const typography = {
+  h1: {
+    fontSize: 32,
+    fontWeight: 'bold' as const,
+    color: colors.text.primary,
+  },
+  h2: {
+    fontSize: 24,
+    fontWeight: 'bold' as const,
+    color: colors.text.primary,
+  },
+  h3: {
+    fontSize: 20,
+    fontWeight: '600' as const,
+    color: colors.text.primary,
+  },
+  body: {
+    fontSize: 16,
+    color: colors.text.secondary,
+    lineHeight: 24,
+  },
+  caption: {
+    fontSize: 14,
+    color: colors.text.tertiary,
+  },
+  button: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: colors.text.inverted,
+  },
 };
 
-export const FONT_FAMILY = {
-  regular: 'System', // Substitua pelos nomes das suas fontes
-  semiBold: 'System',
-  bold: 'System',
-};
-
-// 4. Estilos Globais Reutilizáveis
-const globalStyles = StyleSheet.create({
-  card: {
-    backgroundColor: PALETTE.white,
-    borderRadius: 16,
-    padding: SPACING.m,
-    elevation: 3,
+export const shadows = {
+  small: {
     shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  text_h1: {
-    fontFamily: FONT_FAMILY.bold,
-    fontSize: 28,
-    color: PALETTE.black,
+  medium: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  // ... outros estilos globais
-});
-
-
-// 5. Exporta tudo em um único objeto para fácil acesso
-export const designSystem = {
-  COLORS: PALETTE,
-  THEME_COLORS,
-  SPACING,
-  FONT_FAMILY,
-  STYLES: StyleSheet.create({
-    card: {
-      backgroundColor: PALETTE.white,
-      borderRadius: 16,
-      padding: 16,
-      shadowColor: PALETTE.black,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.05,
-      shadowRadius: 12,
-      elevation: 5,
-      borderWidth: 1,
-      borderColor: '#F0F0F0',
-    },
-    text_h1: {
-      fontFamily: FONT_FAMILY.bold,
-      fontSize: 28,
-      color: PALETTE.black,
-    },
-    text_h2: {
-      fontFamily: FONT_FAMILY.semiBold,
-      fontSize: 22,
-      color: PALETTE.black,
-    },
-    text_body: {
-      fontFamily: FONT_FAMILY.regular,
-      fontSize: 16,
-      color: PALETTE.gray_dark,
-    },
-    text_caption: {
-      fontFamily: FONT_FAMILY.regular,
-      fontSize: 14,
-      color: PALETTE.gray_medium,
-    },
-  }),
+  large: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 10,
+  },
 };
+
+export const layout = {
+  window: {
+    width,
+    height,
+  },
+  isSmallDevice: width < 375,
+};
+
+export const theme = {
+  colors,
+  spacing,
+  typography,
+  shadows,
+  layout,
+};
+
+export default theme;

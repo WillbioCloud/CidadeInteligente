@@ -1,72 +1,90 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useUserStore } from '../hooks/useUserStore';
-import * as Icons from '../components/Icons';
-import { designSystem } from '../styles/designSystem';
-import { LOTEAMENTOS_CONFIG } from '../data/loteamentos.data';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { MaterialTopTabBarProps } from '@react-navigation/material-top-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Home, Store, Activity, Trophy, User } from 'lucide-react-native';
 
-// Map tab labels to icon components
+export function CustomTabBar({ state, descriptors, navigation }: MaterialTopTabBarProps) {
+  const insets = useSafeAreaInsets();
 
-const icons = {
-  Home: Icons.Home,
-  Comercios: Icons.Store,
-  Gamificacao: Icons.Trophy || Icons.Star,
-  Feed: Icons.Newspaper,
-  Conta: Icons.User,
-  Transporte: Icons.Bus,
-  Saude: Icons.Heart,
-  Mais: Icons.MoreHorizontal,
-};
+  const getIcon = (routeName: string, color: string, size: number) => {
+    switch (routeName) {
+      case 'Home':
+        return <Home size={size} color={color} />;
+      case 'Comercios':
+        return <Store size={size} color={color} />;
+      case 'Feed':
+        return <Activity size={size} color={color} />;
+      case 'Gamificacao':
+        return <Trophy size={size} color={color} />;
+      case 'Conta':
+        return <User size={size} color={color} />;
+      default:
+        return <Home size={size} color={color} />;
+    }
+  };
 
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-
-export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const selectedLoteamentoId = useUserStore((s) => s.selectedLoteamentoId);
-  const _hasHydrated = useUserStore((s) => s._hasHydrated);
-  const isClient = useUserStore((s) => s.isClient);
-
-  if (!_hasHydrated) return null;
-
-  // Theme color logic
-  const defaultTheme = designSystem.THEME_COLORS['green'] || { primary: '#22C55E' };
-  let theme = defaultTheme;
-  const colorName = LOTEAMENTOS_CONFIG[selectedLoteamentoId]?.color;
-  if (colorName && designSystem.THEME_COLORS[colorName]) {
-    theme = designSystem.THEME_COLORS[colorName];
-  }
+  const getLabel = (routeName: string) => {
+    switch (routeName) {
+      case 'Home': return 'Início';
+      case 'Comercios': return 'Serviços'; // ou Comércios
+      case 'Feed': return 'Feed';
+      case 'Gamificacao': return 'Missões';
+      case 'Conta': return 'Perfil';
+      default: return routeName;
+    }
+  };
 
   return (
-    <View style={styles.tabBarContainer}>
+    <View style={[
+      styles.container, 
+      { paddingBottom: insets.bottom > 0 ? insets.bottom : 20 } // Ajuste para iPhone X+
+    ]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
-        const rawLabel = options.tabBarLabel ?? options.title ?? route.name;
-        const label = typeof rawLabel === 'string' ? rawLabel : route.name;
-        if (typeof label !== 'string') return null;
         const isFocused = state.index === index;
-        const Icon = (icons as any)[label] || Icons.MoreHorizontal;
-        const isGamificationDisabled = label === 'Gamificacao' && !isClient;
-        const focusedColor = label === 'Gamificacao' ? theme.primary : designSystem.COLORS.green;
 
         const onPress = () => {
-          if (isGamificationDisabled) {
-            alert('Esta área é exclusiva para clientes.');
-            return;
-          }
-          const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+
           if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name, route.params);
+            navigation.navigate(route.name);
           }
         };
 
+        const onLongPress = () => {
+          navigation.emit({
+            type: 'tabLongPress',
+            target: route.key,
+          });
+        };
+
+        const color = isFocused ? '#059669' : '#9CA3AF'; // Verde Primário vs Cinza
+
         return (
-          <TouchableOpacity key={index} style={styles.tabItem} onPress={onPress} disabled={isGamificationDisabled}>
-            {Icon && (
-              <View style={[styles.iconContainer, isFocused && [styles.iconContainerFocused, { backgroundColor: focusedColor }]]}>
-                <Icon color={isFocused ? '#FFFFFF' : isGamificationDisabled ? '#D1D5DB' : '#4A90E2'} size={24} />
-              </View>
-            )}
-            <Text style={[styles.tabLabel, isFocused && styles.tabLabelFocused, isGamificationDisabled && styles.tabLabelDisabled]}>
-              {label}
+          <TouchableOpacity
+            key={route.key}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            testID={options.tabBarTestID}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            style={styles.tabItem}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.iconContainer, isFocused && styles.activeIconContainer]}>
+              {getIcon(route.name, isFocused ? '#059669' : '#6B7280', 24)}
+            </View>
+            <Text style={[
+              styles.label, 
+              { color: isFocused ? '#059669' : '#6B7280', fontWeight: isFocused ? '600' : '500' }
+            ]}>
+              {getLabel(route.name)}
             </Text>
           </TouchableOpacity>
         );
@@ -76,52 +94,33 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
 }
 
 const styles = StyleSheet.create({
-  tabBarContainer: {
-    position: 'absolute',
-    bottom: 25,
-    left: 20,
-    right: 20,
+  container: {
     flexDirection: 'row',
-    backgroundColor: 'white',
-    borderRadius: 35,
-    height: 70,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    paddingTop: 12,
+    elevation: 8, // Sombra no Android
+    shadowColor: '#000', // Sombra no iOS
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 4,
   },
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
+    padding: 6,
+    borderRadius: 12,
   },
-  iconContainerFocused: {
-    backgroundColor: '#4A90E2',
-    transform: [{ translateY: -8 }],
-    elevation: 5,
-    shadowColor: '#4A90E2',
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
+  activeIconContainer: {
+    backgroundColor: '#ECFDF5', // Fundo verde claro quando ativo
   },
-  tabLabel: {
-    fontSize: 12,
-    color: '#888',
-  },
-  tabLabelFocused: {
-    fontWeight: 'bold',
-    color: '#4A90E2',
-  },
-  tabLabelDisabled: {
-    opacity: 0.5,
+  label: {
+    fontSize: 10,
+    marginTop: 2,
   },
 });

@@ -1,153 +1,230 @@
-
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, StatusBar, ActivityIndicator, Alert, Image } from 'react-native';
-import { Mail, Lock, Eye, EyeOff, CheckSquare, Square } from 'lucide-react-native';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Alert, 
+  ActivityIndicator, 
+  KeyboardAvoidingView, 
+  Platform,
+  ScrollView
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { supabase } from '../../lib/supabase';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react-native';
+import { AuthStackParamList } from '../../navigation/types';
 
-const SocialLogins = () => (
-  <>
-    <View style={styles.dividerContainer}>
-      <View style={styles.dividerLine} />
-      <Text style={styles.dividerText}>Ou entre com</Text>
-      <View style={styles.dividerLine} />
-    </View>
-    <View style={styles.socialButtonsContainer}>
-      <TouchableOpacity style={styles.socialButton}>
-        <Image source={require('../../assets/logos/google.png')} style={styles.socialIcon} />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.socialButton}>
-        <Image source={require('../../assets/logos/facebook.png')} style={styles.socialIcon} />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.socialButton}>
-        <Image source={require('../../assets/logos/apple.png')} style={styles.socialIcon} />
-      </TouchableOpacity>
-    </View>
-  </>
-);
+type AuthScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-type LoginScreenProps = {
-  navigation: NativeStackNavigationProp<any>;
-};
-
-export default function LoginScreen({ navigation }: LoginScreenProps) {
+export default function LoginScreen() {
+  const navigation = useNavigation<AuthScreenNavigationProp>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Atenção', 'Por favor, preencha o email e a senha.');
+      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
+
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      Alert.alert('Erro no Login', error.message || 'Email ou senha inválidos.');
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      
+      // O AppRouter vai detetar a mudança de sessão e redirecionar automaticamente
+    } catch (error: any) {
+      Alert.alert('Erro no Login', error.message || 'Verifique suas credenciais e tente novamente.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.content}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()}
+        >
+          <ArrowLeft size={24} color="#374151" />
+        </TouchableOpacity>
+
         <View style={styles.header}>
           <Text style={styles.title}>Bem-vindo de volta!</Text>
-          <Text style={styles.subtitle}>Entre na sua conta para continuar</Text>
+          <Text style={styles.subtitle}>Acesse sua conta para continuar</Text>
         </View>
+
         <View style={styles.form}>
-          <View style={styles.inputWrapper}>
-            <Mail {...({ size: 20, color: '#9CA3AF', style: styles.inputIcon } as any)} />
+          <View style={styles.inputContainer}>
+            <Mail size={20} color="#9CA3AF" style={styles.icon} />
             <TextInput
               style={styles.input}
               placeholder="Email"
               placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
+              keyboardType="email-address"
             />
           </View>
-          <View style={styles.inputWrapper}>
-            <Lock {...({ size: 20, color: '#9CA3AF', style: styles.inputIcon } as any)} />
+
+          <View style={styles.inputContainer}>
+            <Lock size={20} color="#9CA3AF" style={styles.icon} />
             <TextInput
               style={styles.input}
               placeholder="Senha"
               placeholderTextColor="#9CA3AF"
-              secureTextEntry={!isPasswordVisible}
               value={password}
               onChangeText={setPassword}
+              secureTextEntry={!showPassword}
             />
-            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
-              {isPasswordVisible ? <EyeOff {...({ size: 20, color: '#9CA3AF' } as any)} /> : <Eye {...({ size: 20, color: '#9CA3AF' } as any)} />}
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              {showPassword ? (
+                <EyeOff size={20} color="#9CA3AF" />
+              ) : (
+                <Eye size={20} color="#9CA3AF" />
+              )}
             </TouchableOpacity>
           </View>
-          <View style={styles.optionsContainer}>
-            <TouchableOpacity style={styles.checkboxContainer} onPress={() => setRememberMe(!rememberMe)}>
-              {rememberMe ? <CheckSquare {...({ size: 20, color: '#4F46E5' } as any)} /> : <Square {...({ size: 20, color: '#9CA3AF' } as any)} />}
-              <Text style={styles.checkboxLabel}>Manter logado</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-              <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
-            </TouchableOpacity>
-          </View>
+
+          <TouchableOpacity 
+            style={styles.forgotPassword}
+            onPress={() => navigation.navigate('ForgotPassword')}
+          >
+            <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <View style={styles.buttonContent}>
+                <Text style={styles.buttonText}>Entrar</Text>
+                <ArrowRight size={20} color="#FFF" />
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Entrar</Text>}
-        </TouchableOpacity>
-        <SocialLogins />
-        <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.footerText}>Não tem conta? <Text style={styles.linkText}>Cadastre-se</Text></Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Não tem uma conta? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.link}>Cadastre-se</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB', justifyContent: 'center', paddingHorizontal: 24 },
-  content: { width: '100%', justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 20 },
-  header: { alignItems: 'center', marginBottom: 40 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#111827' },
-  subtitle: { fontSize: 16, color: '#6B7280', marginTop: 8 },
-  form: { marginBottom: 20 },
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 15, marginBottom: 15 },
-  inputIcon: { marginRight: 10 },
-  input: { flex: 1, height: 50, fontSize: 16, color: '#111827' },
-  button: { backgroundColor: '#4F46E5', paddingVertical: 15, borderRadius: 12, alignItems: 'center' },
-  buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
-  dividerContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: 30 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#E5E7EB' },
-  dividerText: { marginHorizontal: 10, color: '#9CA3AF' },
-  socialButtonsContainer: { flexDirection: 'row', justifyContent: 'center', gap: 20 },
-  socialButton: { padding: 12, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 999 },
-  socialIcon: { width: 28, height: 28 },
-  footerButton: { marginTop: 30, alignItems: 'center' },
-  footerText: { fontSize: 16, color: '#6B7280' },
-  linkText: { color: '#4F46E5', fontWeight: 'bold' },
-  optionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+  container: {
+    flexGrow: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 24,
+    justifyContent: 'center',
   },
-  checkboxContainer: {
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 24,
+    zIndex: 10,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+    marginTop: 60,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  form: {
+    gap: 16,
+  },
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 56,
   },
-  checkboxLabel: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
+  icon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#111827',
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
   },
   forgotPasswordText: {
-    color: '#4F46E5',
-    fontWeight: '600',
+    color: '#059669',
     fontSize: 14,
+    fontWeight: '500',
+  },
+  button: {
+    backgroundColor: '#059669',
+    height: 56,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+    shadowColor: '#059669',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 32,
+  },
+  footerText: {
+    color: '#6B7280',
+    fontSize: 15,
+  },
+  link: {
+    color: '#059669',
+    fontWeight: '600',
+    fontSize: 15,
   },
 });

@@ -1,51 +1,22 @@
-// src/navigation/AppModals.tsx (VERSÃO COM LOGOUT CORRIGIDO)
-
 import React from 'react';
-import { useModals } from '../context/ModalContext';
-import { supabase } from '../lib/supabase';
-import * as SecureStore from 'expo-secure-store'; // Importa o SecureStore
+import { StyleSheet, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
-import ProfileModal from '../components/layout/ProfileModal';
-import NotificationsModal from '../components/layout/NotificationsModal';
-
-const CREDENTIALS_KEY = 'userCredentials'; // Mesma chave usada no LoginScreen
-
-
-import React from 'react';
-import { useModals } from '../context/ModalContext';
-import { useUserStore } from '../hooks/useUserStore';
-import { supabase } from '../lib/supabase';
-
-// Importe seus componentes de modal
-import ProfileModal from '../components/layout/ProfileModal';
-import NotificationsModal from '../components/layout/NotificationsModal';
-
-/**
- * Este componente renderiza todos os modais globais do aplicativo.
- */export default function AppModals() {
-  const { isProfileVisible, hideProfile, isNotificationsVisible, hideNotifications } = useModals();
-  
-  const handleLogout = async () => {
-    hideProfile();
-    // Limpa as credenciais da biometria
-    await SecureStore.deleteItemAsync(CREDENTIALS_KEY); 
-    // Faz o logout no Supabase
-    await supabase.auth.signOut();
-    // O onAuthStateChange no AppRouter cuidará de limpar o store.
-
-    await supabase.auth.signOut();  };
-
+export default function AppModals() {
   return (
-    <>
-      <ProfileModal 
-        isVisible={isProfileVisible} 
-        onClose={hideProfile} 
-        onLogout={handleLogout} 
-      />
-      <NotificationsModal 
-        isVisible={isNotificationsVisible} 
-        onClose={hideNotifications} 
-      />
-    </>
+    <View style={styles.container} pointerEvents="box-none">
+      {/* O Toast ficará sobreposto a qualquer tela */}
+      <Toast />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject, // Ocupa a tela toda
+    zIndex: 9999, // Garante prioridade máxima de visualização
+    elevation: 9999, // Para Android
+    pointerEvents: 'box-none', // Permite que toques passem para as camadas inferiores
+    backgroundColor: 'transparent',
+  },
+});

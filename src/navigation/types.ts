@@ -1,28 +1,83 @@
-// src/navigation/types.ts
+import { NavigatorScreenParams } from '@react-navigation/native';
 
-import { StackNavigationProp } from '@react-navigation/stack';
-
-// Define todas as telas e os parâmetros que elas podem receber no MoreStackNavigator
-export type MoreStackParamList = {
-  MoreTabHome: undefined; // A tela principal não recebe parâmetros
-  CourtScheduling: undefined;
-  // O Placeholder pode receber um screenName como parâmetro
-  Placeholder: { screenName: string }; 
-  // Adicione outras telas do MoreStack aqui se elas receberem parâmetros
-  CommunityEvents: undefined;
-  MonitoringCameras: undefined;
-  RegionNews: undefined;
-  Courses: undefined;
-  Support: undefined;
-  SustainableTips: undefined;
-  GarbageSeparation: undefined;
-  WeatherForecast: undefined;
-  Emergency: undefined;
-  FBZSpace: undefined;
-  SpaceCapacity: undefined;
-  IPTU: undefined;
-  Feedback: undefined;
+// --- Auth Navigator ---
+export type AuthStackParamList = {
+  Welcome: undefined;
+  Login: undefined;
+  Register: undefined;
+  ForgotPassword: undefined;
 };
 
-// Define o tipo da prop 'navigation' para as telas dentro do MoreStackNavigator
-export type MoreNavigationProp = StackNavigationProp<MoreStackParamList>;
+// --- Home Stack (dentro da aba Home) ---
+export type HomeStackParamList = {
+  HomeTab: undefined;
+  CourtScheduling: undefined;
+  CourtBookingDetail: { bookingId: string } | undefined;
+  MyBookings: undefined;
+  CommerceDetail: { commerceId: string; commerceName?: string }; // Exemplo de parametros
+  Placeholder: { title: string };
+  Health: undefined;
+  Empreendimentos: undefined;
+  LoteamentoMedia: { loteamentoId?: string } | undefined;
+  OperatingHours: undefined;
+  More: undefined;
+  Mapa: undefined;
+  Transport: undefined;
+  Achievements: undefined;
+};
+
+// --- Comercios Stack ---
+export type ComerciosStackParamList = {
+  ComerciosTab: undefined;
+  CommerceDetail: { commerceId: string; commerceName?: string };
+};
+
+// --- Gamificação Stack ---
+export type GamificationStackParamList = {
+  GamificacaoTab: undefined;
+  Achievements: undefined;
+  Placeholder: { title: string };
+};
+
+// --- Profile Stack ---
+export type ProfileStackParamList = {
+  ProfileTab: undefined;
+  EditProfile: undefined;
+  Achievements: undefined;
+  Settings: undefined;
+  Support: undefined;
+  PrivacyPolicy: undefined;
+  Placeholder: { title: string };
+};
+
+// --- Feed Stack ---
+export type FeedStackParamList = {
+  FeedList: undefined;
+  PostDetail: { postId: string };
+};
+
+// --- More Stack ---
+export type MoreStackParamList = {
+  Menu: undefined;
+  Placeholder: { title: string };
+  Achievements: undefined;
+};
+
+// --- Main Tab Navigator (O principal) ---
+export type MainTabParamList = {
+  Home: NavigatorScreenParams<HomeStackParamList>;
+  Comercios: NavigatorScreenParams<ComerciosStackParamList>;
+  Feed: NavigatorScreenParams<FeedStackParamList>;
+  Gamificacao: NavigatorScreenParams<GamificationStackParamList>;
+  Conta: NavigatorScreenParams<ProfileStackParamList>;
+};
+
+// --- Root Navigator (Se tiveres um Root que engloba tudo, opcional mas bom ter) ---
+// Normalmente o AppRouter decide entre Auth e Main, então não há um "Root" de navegação único,
+// mas tipamos as props globalmente se necessário.
+
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends AuthStackParamList, MainTabParamList {}
+  }
+}

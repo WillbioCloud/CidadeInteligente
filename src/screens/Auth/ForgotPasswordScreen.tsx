@@ -1,79 +1,182 @@
-// Local: src/screens/Auth/ForgotPasswordScreen.tsx
-
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Mail, ArrowLeft } from 'lucide-react-native';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Alert, 
+  ActivityIndicator, 
+  KeyboardAvoidingView, 
+  Platform,
+  ScrollView
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { supabase } from '../../lib/supabase';
+import { Mail, ArrowLeft, ArrowRight } from 'lucide-react-native';
+import { AuthStackParamList } from '../../navigation/types';
 
-export default function ForgotPasswordScreen({ navigation }) {
+type AuthScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'ForgotPassword'>;
+
+export default function ForgotPasswordScreen() {
+  const navigation = useNavigation<AuthScreenNavigationProp>();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSendLink = async () => {
+  const handleResetPassword = async () => {
     if (!email) {
-      alert('Por favor, informe seu email.');
+      Alert.alert('Erro', 'Por favor, digite o seu email.');
       return;
     }
-    setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      // IMPORTANTE: Este link deve ser configurado para o seu app (Deep Linking)
-      // Por enquanto, ele apenas funciona se o app estiver em modo de desenvolvimento com Expo Go.
-      redirectTo: 'expolink://-A--cidadeinteligente/--/reset-password',
-    });
 
-    if (error) {
-      alert(error.message);
-    } else {
-      alert('Se um usuário com este email existir, um link de recuperação será enviado.');
+    setLoading(true);
+
+    try {
+      // O Supabase enviará um link de redefinição para o email
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'cidadeinteligente://reset-password', // Certifica-te que este esquema está no app.json
+      });
+
+      if (error) throw error;
+
+      Alert.alert(
+        'Email Enviado',
+        'Verifique a sua caixa de entrada. Enviamos um link para redefinir a sua senha.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+    } catch (error: any) {
+      Alert.alert('Erro', error.message || 'Não foi possível enviar o email de recuperação.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <ArrowLeft size={24} color="#111827" />
-      </TouchableOpacity>
-      <View style={styles.content}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()}
+        >
+          <ArrowLeft size={24} color="#374151" />
+        </TouchableOpacity>
+
         <View style={styles.header}>
           <Text style={styles.title}>Recuperar Senha</Text>
-          <Text style={styles.subtitle}>Sem problemas! Insira seu email para receber o link de redefinição.</Text>
+          <Text style={styles.subtitle}>
+            Digite o seu email e enviaremos instruções para redefinir a sua senha.
+          </Text>
         </View>
 
         <View style={styles.form}>
-          <View style={styles.inputWrapper}>
-            <Mail size={20} color="#9CA3AF" style={styles.inputIcon} />
+          <View style={styles.inputContainer}>
+            <Mail size={20} color="#9CA3AF" style={styles.icon} />
             <TextInput
               style={styles.input}
-              placeholder="seu@email.com"
+              placeholder="Digite seu email"
               placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
+              keyboardType="email-address"
               autoCapitalize="none"
             />
           </View>
-        </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleSendLink} disabled={loading}>
-          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Enviar Link</Text>}
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={handleResetPassword}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <View style={styles.buttonContent}>
+                <Text style={styles.buttonText}>Enviar Email</Text>
+                <ArrowRight size={20} color="#FFF" />
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB', justifyContent: 'center', paddingHorizontal: 24 },
-  backButton: { position: 'absolute', top: 60, left: 24, zIndex: 10 },
-  content: { width: '100%', justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 20 },
-  header: { alignItems: 'center', marginBottom: 40 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#111827' },
-  subtitle: { fontSize: 16, color: '#6B7280', marginTop: 8, textAlign: 'center' },
-  form: { marginBottom: 20 },
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 15, marginBottom: 15 },
-  inputIcon: { marginRight: 10 },
-  input: { flex: 1, height: 50, fontSize: 16, color: '#111827' },
-  button: { backgroundColor: '#4F46E5', paddingVertical: 15, borderRadius: 12, alignItems: 'center' },
-  buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  container: {
+    flexGrow: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 24,
+    justifyContent: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 24,
+    zIndex: 10,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+    marginTop: 60,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 12,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    lineHeight: 24,
+  },
+  form: {
+    gap: 16,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 56,
+  },
+  icon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#111827',
+  },
+  button: {
+    backgroundColor: '#059669',
+    height: 56,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+    shadowColor: '#059669',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+  },
 });
