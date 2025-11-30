@@ -4,11 +4,8 @@
     "slug": "CidadeInteligente",
     "version": "1.0.0",
     "orientation": "portrait",
-<<<<<<< HEAD
     "icon": "./assets/Icon.png",
-=======
     "icon": "./assets/icon.png",
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -28,7 +25,6 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-<<<<<<< HEAD
     },
     "plugins": [
       "expo-secure-store",
@@ -57,8 +53,6 @@
       ]
     ]
     
-=======
     }
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
   }
-}
+
