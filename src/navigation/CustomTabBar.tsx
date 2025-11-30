@@ -29,7 +29,7 @@ export function CustomTabBar({ state, descriptors, navigation }) {
   if(colorName && THEME_COLORS[colorName]) {
     theme = THEME_COLORS[colorName];
   }
-  
+   
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useUserStore } from '../hooks/useUserStore';

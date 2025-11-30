@@ -1,4 +1,4 @@
-// src/hooks/useUserStore.ts (VERSÃO FINAL COM A CORREÇÃO DE TENTATIVAS)
+// src/hooks/useUserStore.ts
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
@@ -7,28 +7,19 @@ import { supabase } from '../lib/supabase';
 import { Loteamento, LOTEAMENTOS_CONFIG } from '../data/loteamentos.data';
 import { THEME_COLORS } from '../styles/designSystem';
 
-// --- SUAS INTERFACES (sem alterações) ---
-
-// src/hooks/useUserStore.ts (VERSÃO FINAL COM PERSISTÊNCIA DE CONQUISTAS)
-
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Loteamento, LOTEAMENTOS_CONFIG } from '../data/loteamentos.data';export interface UserProperty {
+export interface UserProperty {
   id: string;
   loteamento_id: string;
-  quadra: string;
-  lote: string;
+  quadra?: string;
+  lote?: string;
 }
 
 export interface Profile {
   id: string;
-  full_name: string;
-  isClient?: boolean;
+  full_name?: string;
+  email?: string;
   avatar_url?: string;
-
-  user_status: 'client' | 'non_client';
-  full_name: string;  email?: string;
+  user_status?: 'client' | 'non_client';
   points?: number;
   level?: number;
   properties?: UserProperty[];
@@ -36,10 +27,7 @@ export interface Profile {
   available_achievements?: string[];
   displayed_achievements?: string[];
   phone?: string;
-
-  available_achievements?: string[];
-  displayed_achievements?: string[];
-  avatar_url?: string; // Adicionado para a foto de perfil}
+}
 
 export interface ThemeColors {
   primary: string;
@@ -51,27 +39,25 @@ export interface ThemeColors {
 interface UserState {
   session: any | null;
   userProfile: Profile | null;
-  selectedLoteamentoId: string | null;
+  selectedLoteamentoId: string;
   _hasHydrated: boolean;
-  setSession: (session: any) => void;
-  setUserProfile: (profile: Profile | null, properties: UserProperty[]) => void;
-  setSelectedLoteamentoId: (loteamentoId: string) => void;
+
+  // actions
   setHasHydrated: (state: boolean) => void;
+  setSession: (session: any) => void;
+  setUserProfile: (profile: Profile | null, properties?: UserProperty[]) => void;
+  setSelectedLoteamentoId: (loteamentoId: string) => void;
   fetchUserProfile: (session: any) => Promise<void>;
   clearStore: () => void;
   updateUserProfile: (updates: Partial<Profile>) => void;
   setDisplayedAchievements: (achievements: string[]) => void;
+
+  // selectors
   getCurrentLoteamento: () => Loteamento | undefined;
   getThemeColors: () => ThemeColors;
 
   isClient: boolean;
-  setSession: (session: any) => void;
-  setUserProfile: (profile: Profile | null, properties: UserProperty[]) => void;
-  setSelectedLoteamentoId: (loteamentoId: string) => void;
-  setDisplayedAchievements: (achievements: string[]) => void;
-  getCurrentLoteamento: () => Loteamento | undefined;
-  getThemeColors: () => ThemeColors;
-  clearStore: () => void;}
+}
 
 export const useUserStore = create<UserState>()(
   persist(
@@ -80,161 +66,116 @@ export const useUserStore = create<UserState>()(
       userProfile: null,
       selectedLoteamentoId: 'cidade_inteligente',
       _hasHydrated: false,
+      isClient: false,
 
       setHasHydrated: (state) => set({ _hasHydrated: state }),
+
       setSession: (session) => set({ session }),
+
       setSelectedLoteamentoId: (loteamentoId) => set({ selectedLoteamentoId: loteamentoId }),
 
-      setUserProfile: (profile, properties) => {
+      setUserProfile: (profile, properties = []) => {
         const isClient = !!(properties && properties.length > 0);
         let selectedId = get().selectedLoteamentoId || 'cidade_inteligente';
         if (isClient && properties[0]?.loteamento_id) {
           selectedId = properties[0].loteamento_id;
         }
+
+        const currentDisplayedAchievements = get().userProfile?.displayed_achievements || [];
+
         set({
-          userProfile: profile ? { ...profile, properties, isClient } : null,
+          userProfile: profile
+            ? {
+                ...profile,
+                properties,
+                available_achievements:
+                  profile.available_achievements || ['Pioneiro', 'Explorador', 'Bom Vizinho', 'Visionário'],
+                displayed_achievements: currentDisplayedAchievements,
+              }
+            : null,
+          isClient,
           selectedLoteamentoId: selectedId,
         });
       },
 
-      // --- FUNÇÃO CORRIGIDA AQUI ---
       fetchUserProfile: async (session) => {
         if (!session?.user) return;
 
         const fetchProfileWithRetries = async (retries = 3, delay = 500) => {
           try {
-            console.log(`Buscando perfil... Tentativas restantes: ${retries}`);
-
             const { data, error } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
               .single();
 
-            // Se o erro for "nenhuma linha encontrada" e ainda houver tentativas, tenta de novo
-            if (error && error.code === 'PGRST116' && retries > 0) {
-              console.warn('Perfil ainda não encontrado. Tentando novamente em 500ms.');
-              await new Promise(res => setTimeout(res, delay));
+            if (error && retries > 0) {
+              await new Promise((r) => setTimeout(r, delay));
               return fetchProfileWithRetries(retries - 1, delay);
             }
 
-            // Se for qualquer outro tipo de erro, lança para o catch
-            if (error && error.code !== 'PGRST116') {
-              throw error;
-            }
+            if (error) throw error;
 
-            // Se encontrou, busca as propriedades
             const { data: propertiesData, error: propertiesError } = await supabase
               .from('user_properties')
               .select('*')
               .eq('user_id', session.user.id);
-            
+
             if (propertiesError) throw propertiesError;
 
-            // Atualiza o estado da aplicação
-            get().setUserProfile(data, propertiesData || []);
-
-          } catch (error) {
-            console.error("Erro crítico ao buscar perfil do usuário:", error);
-            // Desloga o usuário para evitar que ele fique em um estado inconsistente
+            get().setUserProfile(data as Profile, (propertiesData as UserProperty[]) || []);
+          } catch (err) {
+            console.error('Erro ao buscar perfil do usuário:', err);
             get().clearStore();
-            supabase.auth.signOut();
+            try {
+              await supabase.auth.signOut();
+            } catch (_) {
+              // ignore
+            }
           }
         };
 
-        // Inicia a busca com a lógica de tentativas
         await fetchProfileWithRetries();
       },
-      
+
       updateUserProfile: (updates) => {
-        set(state => ({
-            userProfile: state.userProfile ? { ...state.userProfile, ...updates } : null
-        }))
+        set((state) => ({ userProfile: state.userProfile ? { ...state.userProfile, ...updates } : null }));
       },
 
-      isClient: false,
-
-      setSession: (session) => set({ session }),
-
-      // AQUI ESTÁ A CORREÇÃO PRINCIPAL:
-      setUserProfile: (profile, properties) => {
-        const isClient = !!(properties && properties.length > 0);
-        let selectedId = get().selectedLoteamentoId;
-        if (isClient && properties[0]?.loteamento_id) {
-          selectedId = properties[0].loteamento_id;
-        }
-
-        // Pega as conquistas que JÁ ESTÃO SALVAS no estado atual antes de qualquer mudança.
-        const currentDisplayedAchievements = get().userProfile?.displayed_achievements || [];
-
-        set({ 
-          userProfile: profile ? { 
-            ...profile, 
-            properties,
-            available_achievements: profile.available_achievements || ['Pioneiro', 'Explorador', 'Bom Vizinho', 'Visionário'],
-            // Usa as conquistas que já estavam salvas, em vez de resetar para uma lista vazia.
-            displayed_achievements: currentDisplayedAchievements,
-          } : null,
-          isClient,
-          selectedLoteamentoId: selectedId,
-        });
-      },
-      
-      setSelectedLoteamentoId: (loteamentoId) => set({ selectedLoteamentoId: loteamentoId }),
       setDisplayedAchievements: (achievements) => {
-        set(state => ({
-          userProfile: state.userProfile
-            ? { ...state.userProfile, displayed_achievements: achievements }
-            : null,
+        set((state) => ({
+          userProfile: state.userProfile ? { ...state.userProfile, displayed_achievements: achievements } : null,
         }));
       },
 
       getCurrentLoteamento: () => {
         const state = get();
-        return LOTEAMENTOS_CONFIG[state.selectedLoteamentoId!];
+        return LOTEAMENTOS_CONFIG[state.selectedLoteamentoId];
       },
 
       getThemeColors: () => {
         const loteamento = get().getCurrentLoteamento();
-        const defaultTheme = THEME_COLORS['dark_blue'];
-        if (!loteamento || !THEME_COLORS[loteamento.color]) {
-            return defaultTheme;
-        }
+        const defaultTheme = THEME_COLORS['dark_blue'] || {
+          primary: '#3B82F6',
+          accent: '#60A5FA',
+          light: '#EFF6FF',
+          gradient: ['#3B82F6', '#2563EB'],
+        };
+
+        if (!loteamento || !THEME_COLORS[loteamento.color]) return defaultTheme;
         return THEME_COLORS[loteamento.color];
       },
 
-      clearStore: () => set({ session: null, userProfile: null, _hasHydrated: true }),
+      clearStore: () => set({ session: null, userProfile: null, _hasHydrated: true, isClient: false, selectedLoteamentoId: 'cidade_inteligente' }),
     }),
     {
       name: 'user-storage',
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.setHasHydrated(true);
-        }
+        if (state) state.setHasHydrated(true);
       },
-
-        const defaultTheme = {
-            primary: '#4A90E2', accent: '#60A5FA', light: '#EFF6FF', gradient: ['#4A90E2', '#3B82F6']
-        };
-        if (!loteamento) return defaultTheme;
-
-        const themes = {
-          'orange': { primary: '#F97316', accent: '#FB923C', light: '#FFF7ED', gradient: ['#F97316', '#EA580C'] },
-          'red': { primary: '#EF4444', accent: '#F87171', light: '#FEF2F2', gradient: ['#EF4444', '#DC2626'] },
-          'green': { primary: '#22C55E', accent: '#4ADE80', light: '#F0FDF4', gradient: ['#22C55E', '#16A34A'] },
-          'dark_blue': { primary: '#3B82F6', accent: '#60A5FA', light: '#EFF6FF', gradient: ['#3B82F6', '#2563EB'] },
-          'light_blue': { primary: '#0EA5E9', accent: '#38BDF8', light: '#F0F9FF', gradient: ['#0EA5E9', '##0284C7'] },
-        };
-        return themes[loteamento.color] || defaultTheme;
-      },
-
-      clearStore: () => {
-        set({ userProfile: null, isClient: false, session: null, selectedLoteamentoId: 'cidade_inteligente' });
-      },
-    }),
-    {
-      name: 'user-storage',
-      getStorage: () => AsyncStorage,    }
+    }
   )
 );
+
+export default useUserStore;

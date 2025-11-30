@@ -3,4 +3,11 @@
   "compilerOptions": {
     "strict": true
   }
+  ,
+  "exclude": [
+    "src_conflicts_backup_*",
+    "src_conflicts_backup_*/**",
+    "supabase/.temp",
+    "node_modules"
+  ]
 }
