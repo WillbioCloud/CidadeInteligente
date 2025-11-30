@@ -156,68 +156,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#EBF2FC',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.1
-  },
-  avatarImage: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-
-  userInfoContainer: {
-    flex: 1,
-  },
-  userRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start', // Alinha os itens à esquerda  },
-  greetingText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginRight: 8,
-
-    marginRight: 8, // Espaço entre o nome e o nível  },
-  levelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  levelText: {
-    fontSize: 14,
-    color: '#F5A623',
-    marginLeft: 2,
-  },
-  loteamentoText: {
-    fontSize: 12,
-    color: '#64748B',
-    fontStyle: 'italic',
-  },
-  notificationButton: {
-    marginLeft: 12,
-    padding: 8,
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#EF4444',
-    borderWidth: 1.5,
-    borderColor: 'white',
-
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#EF4444',  },
-  achievementsContainer: {
+                          <TouchableOpacity style={styles.notificationButton} onPress={() => {
+                            onNotificationsPress();
+                            setHasUnread(false); // Otimisticamente marca como lido ao abrir
+                          }}>
+                            <Bell size={24} color="#333" />
+                            {hasUnread && <View style={styles.notificationDot} />}
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    );
+                  }
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 2,

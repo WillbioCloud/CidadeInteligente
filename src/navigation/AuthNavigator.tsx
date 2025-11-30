@@ -28,7 +28,7 @@ export default function AuthNavigator() {
 
       {/* As telas restantes mantêm o mesmo fluxo */}
       <AuthStack.Screen name="Login" component={LoginScreen} />
-      <AuthStack.Screen name="Register" component={RegisterScreen} />
+      <AuthStack.Screen name="Register" component={RegisterScreen as any} />
       <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </AuthStack.Navigator>
   );

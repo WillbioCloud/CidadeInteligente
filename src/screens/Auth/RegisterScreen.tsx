@@ -64,63 +64,9 @@ export default function RegisterScreen({ navigation }) {
     } else if (user) {
       Alert.alert(
         'Cadastro Realizado!',
-        'Verifique o seu email para confirmar a conta e depois faça o login.',
-
-// src/screens/Auth/RegisterScreen.tsx (VERSÃO FINAL E CORRIGIDA)
-
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
-import { supabase } from '../../lib/supabase'; // Importamos o supabase diretamente
-import { ALL_LOTEAMENTOS } from '../../data/loteamentos.data';
-
-export default function RegisterScreen({ navigation }) {
-  const [step, setStep] = useState(1);
-  const [isAlreadyClient, setIsAlreadyClient] = useState(false);
-  
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [selectedLoteamento, setSelectedLoteamento] = useState(ALL_LOTEAMENTOS[0]?.id);
-  const [quadra, setQuadra] = useState('');
-  const [lote, setLote] = useState('');
-
-  const [loading, setLoading] = useState(false);
-
-  const handleInitialChoice = (isClient: boolean) => {
-    setIsAlreadyClient(isClient);
-    setStep(2);
-  };
-
-  const handleRegister = async () => {
-    if (!fullName || !email || !password) {
-      Alert.alert('Campos Incompletos', 'Por favor, preencha nome, email e senha.');
-      return;
+        'Verifique o seu email para confirmar a conta e depois faça o login.'
+      );
     }
-    if (isAlreadyClient && (!selectedLoteamento || !quadra || !lote)) {
-      Alert.alert('Campos Incompletos', 'Por favor, preencha os dados da sua propriedade.');
-      return;
-    }
-
-    setLoading(true);
-
-    // --- AQUI ESTÁ A CORREÇÃO PRINCIPAL ---
-    // Fazemos a chamada direta para o Supabase, garantindo que o `full_name` seja enviado corretamente.
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        // O campo 'data' é usado para passar metadados, como o nome do usuário.
-        // O nosso gatilho no Supabase vai ler este campo.
-        data: {
-          full_name: fullName, // Usando a chave 'full_name' que o gatilho espera
-          is_client: isAlreadyClient,
-          // No futuro, podemos passar os dados da propriedade aqui também
-          properties: isAlreadyClient ? [{ loteamentoId: selectedLoteamento, quadra, lote }] : [],
-        },
-      },
-    });
     // --- FIM DA CORREÇÃO ---
 
     if (error) {
@@ -288,29 +234,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     policyText: {
-        marginLeft: 12,
-        fontSize: 14,
-        color: '#6B7280',
-        flexShrink: 1,
-    }
-
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  content: { justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 20 },
-  header: { alignItems: 'center', marginBottom: 30 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#111827' },
-  selectionTitle: { fontSize: 18, fontWeight: '600', color: '#374151', textAlign: 'center', marginBottom: 8 },
-  selectionSubtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center', marginBottom: 24 },
-  optionButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 16, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB' },
-  optionText: { fontSize: 16, color: '#1F2937', marginLeft: 16, fontWeight: '500' },
-  backButton: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, alignSelf: 'flex-start' },
-  backButtonText: { color: '#4B5563', marginLeft: 8, fontWeight: '600' },
-  formSectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#111827', marginTop: 16, marginBottom: 8, borderTopColor: '#E5E7EB', borderTopWidth: 1, paddingTop: 16 },
-  inputWrapper: { backgroundColor: '#FFF', borderRadius: 12, marginBottom: 15, borderWidth: 1, borderColor: '#E5E7EB' },
-  input: { height: 50, fontSize: 16, color: '#111827', paddingHorizontal: 15 },
-  pickerWrapper: { backgroundColor: '#FFF', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 15 },
-  picker: { height: 50 },
-  button: { backgroundColor: '#4F46E5', paddingVertical: 15, borderRadius: 12, alignItems: 'center', marginTop: 10 },
-  buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
-  footerButton: { marginTop: 30, alignItems: 'center' },
-  footerText: { fontSize: 16, color: '#6B7280' },
-  linkText: { color: '#4F46E5', fontWeight: 'bold' },});
+      marginLeft: 12,
+      fontSize: 14,
+      color: '#6B7280',
+      flexShrink: 1,
+    },
+  });

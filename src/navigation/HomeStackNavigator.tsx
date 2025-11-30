@@ -14,7 +14,7 @@ export default function HomeStackNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        header: () => <CustomHeader />, // Header padrão para as telas deste stack
+        header: () => <CustomHeader onNotificationsPress={() => {}} />, // Header padrão para as telas deste stack
       }}
     >
       <Stack.Screen
