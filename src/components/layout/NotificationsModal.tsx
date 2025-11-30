@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/components/layout/NotificationsModal.tsx
 
 import React, { useState, useCallback, useEffect, useMemo, forwardRef } from 'react';
@@ -236,7 +235,7 @@ const styles = StyleSheet.create({
     unreadDot: { width: 10, height: 10, borderRadius: 5, marginLeft: 8, alignSelf: 'center' },
     emptyText: { textAlign: 'center', marginTop: 50, color: '#6B7280' },
 });
-=======
+
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -316,4 +315,3 @@ const styles = StyleSheet.create({
     infoCardButton: { marginTop: 16, borderRadius: 12, padding: 12, alignItems: 'center' },
     infoCardButtonText: { color: '#FFF', fontWeight: 'bold' },
 });
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391

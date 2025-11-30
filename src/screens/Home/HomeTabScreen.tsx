@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/screens/Home/HomeTabScreen.tsx (VERSÃO FINAL UNIFICADA)
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -110,7 +109,7 @@ const ContentFeed = () => {
           renderItem={({ item }) => <PostCard item={item} />}
         />
       )}
-=======
+
 // src/screens/Home/HomeTabScreen.tsx (VERSÃO COMPLETA E FINAL)
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -210,13 +209,10 @@ const LoteamentoCard = ({ item, navigation }: { item: LoteamentoData, navigation
               <Text style={styles.acquireButtonText}>{hasAvailableLots ? 'Adquirir' : 'Esgotado'}</Text>
             </TouchableOpacity>
         </View>
-      </View>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-    </View>
+      </View>    </View>
   );
 };
 
-<<<<<<< HEAD
 // --- FIM DA LÓGICA DO CONTENTFEED ---
 
 
@@ -329,7 +325,7 @@ const styles = StyleSheet.create({
     fontSize: 16, 
     fontWeight: 'bold' 
   },
-=======
+
 
 export default function HomeTabScreen() {
   const navigation = useNavigation();
@@ -524,6 +520,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   acquireButtonDisabled: { backgroundColor: '#9CA3AF' },
-  acquireButtonText: { color: 'white', fontWeight: 'bold' },
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-});
+  acquireButtonText: { color: 'white', fontWeight: 'bold' },});

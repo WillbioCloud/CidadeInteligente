@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/components/layout/CustomHeader.tsx
 
 import React, { useState, useEffect } from 'react';
@@ -62,7 +61,7 @@ export default function CustomHeader({ onNotificationsPress }: CustomHeaderProps
       supabase.removeChannel(subscription);
     };
   }, [userProfile?.id]);
-=======
+
 // src/components/layout/CustomHeader.tsx (VERSÃO COM TAGS MENORES E NÍVEL)
 
 import React from 'react';
@@ -78,13 +77,10 @@ export default function CustomHeader() {
   const firstName = userProfile?.full_name?.split(' ')[0] || 'Usuário';
   const displayedAchievements = userProfile?.displayed_achievements || [];
   const userLevel = userProfile?.level || 1; // Pega o nível do usuário
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-
   return (
     <View style={styles.headerContainer}>
       <View style={styles.content}>
         <TouchableOpacity style={styles.avatarContainer} onPress={showProfile}>
-<<<<<<< HEAD
           {avatarUrl ? (
             <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
           ) : (
@@ -92,21 +88,15 @@ export default function CustomHeader() {
               <User size={24} color="#4A90E2" />
             </View>
           )}
-=======
+
           <View style={styles.avatarPlaceholder}>
             <User size={24} color="#4A90E2" />
-          </View>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-        </TouchableOpacity>
+          </View>        </TouchableOpacity>
 
         <View style={styles.userInfoContainer}>
           <View style={styles.userRow}>
             <Text style={styles.greetingText}>Olá, {firstName}!</Text>
-<<<<<<< HEAD
-=======
-            {/* Exibe a estrela com o nível */}
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-            <View style={styles.levelContainer}>
+            {/* Exibe a estrela com o nível */}            <View style={styles.levelContainer}>
               <Star size={14} color="#F5A623" />
               <Text style={styles.levelText}>{userLevel}</Text>
             </View>
@@ -121,28 +111,22 @@ export default function CustomHeader() {
                 </View>
               ))
             ) : (
-<<<<<<< HEAD
               <Text style={styles.loteamentoText}>Selecione as suas conquistas</Text>
-=======
-              <Text style={styles.loteamentoText}>Selecione suas conquistas</Text>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-            )}
+
+              <Text style={styles.loteamentoText}>Selecione suas conquistas</Text>            )}
           </View>
         </View>
 
-<<<<<<< HEAD
         <TouchableOpacity style={styles.notificationButton} onPress={() => {
           onNotificationsPress();
           setHasUnread(false); // Otimisticamente marca como lido ao abrir
         }}>
           <Bell size={24} color="#333" />
           {hasUnread && <View style={styles.notificationDot} />}
-=======
+
         <TouchableOpacity style={styles.notificationButton} onPress={showNotifications}>
           <Bell size={24} color="#333" />
-          <View style={styles.notificationDot} />
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-        </TouchableOpacity>
+          <View style={styles.notificationDot} />        </TouchableOpacity>
       </View>
     </View>
   );
@@ -178,7 +162,6 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.1
   },
-<<<<<<< HEAD
   avatarImage: {
     width: 44,
     height: 44,
@@ -186,29 +169,21 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'white',
   },
-=======
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
+
   userInfoContainer: {
     flex: 1,
   },
   userRow: {
     flexDirection: 'row',
     alignItems: 'center',
-<<<<<<< HEAD
-=======
-    justifyContent: 'flex-start', // Alinha os itens à esquerda
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  },
+    justifyContent: 'flex-start', // Alinha os itens à esquerda  },
   greetingText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1E293B',
-<<<<<<< HEAD
     marginRight: 8,
-=======
-    marginRight: 8, // Espaço entre o nome e o nível
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  },
+
+    marginRight: 8, // Espaço entre o nome e o nível  },
   levelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -231,34 +206,27 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-<<<<<<< HEAD
     width: 10,
     height: 10,
     borderRadius: 5,
     backgroundColor: '#EF4444',
     borderWidth: 1.5,
     borderColor: 'white',
-=======
+
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#EF4444',
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  },
+    backgroundColor: '#EF4444',  },
   achievementsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-<<<<<<< HEAD
     marginTop: 2,
-=======
-    marginTop: 2, // Reduzi um pouco a margem superior
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  },
+
+    marginTop: 2, // Reduzi um pouco a margem superior  },
   achievementTag: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#EEF2FF',
-<<<<<<< HEAD
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 3,
@@ -271,7 +239,7 @@ const styles = StyleSheet.create({
     marginLeft: 3,
   },
 });
-=======
+
     borderRadius: 10, // Arredondamento menor
     paddingHorizontal: 6, // Padding menor
     paddingVertical: 3,   // Padding menor
@@ -284,4 +252,3 @@ const styles = StyleSheet.create({
     marginLeft: 3,    // Espaço menor para o ícone
   },
 });
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391

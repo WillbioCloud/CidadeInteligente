@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // screens/Health/HealthTabScreen.tsx (VERSÃO FINAL COMPLETA E SEM ABREVIAÇÕES)
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -11,7 +10,7 @@ import { fetchHealthData, HealthInfo, HealthCategory } from '../../api/healthApi
 import { HealthIcon } from '../../components/HealthIcons';
 
 // Função utilitária para formatar o tempo relativo
-=======
+
 // screens/Health/HealthTabScreen.tsx (VERSÃO COMPLETA E CORRIGIDA)
 
 import React, { useState, useEffect } from 'react';
@@ -31,10 +30,7 @@ const categories = [
   { id: 'Alimentação', name: 'Alimentação' },
   { id: 'Exercícios', name: 'Exercícios' },
   { id: 'Saúde Mental', name: 'Saúde Mental' },
-];
-
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-const formatTimeAgo = (dateString: string) => {
+];const formatTimeAgo = (dateString: string) => {
   if (!dateString) return '';
   const date = new Date(dateString);
   const now = new Date();
@@ -58,7 +54,6 @@ const formatTimeAgo = (dateString: string) => {
   return 'agora mesmo';
 };
 
-<<<<<<< HEAD
 // Card para a lista de dicas
 const HealthTipCard = ({ item, onPress }) => {
   const getCategoryStyle = (category: string) => {
@@ -72,7 +67,7 @@ const HealthTipCard = ({ item, onPress }) => {
         return { backgroundColor: '#EEF2FF', color: '#4338CA' };
       default:
         return { backgroundColor: '#F3F4F6', color: '#4B5563' };
-=======
+
 const DetailView = ({ tip, onClose }) => {
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#FFFFFF'}}>
@@ -136,9 +131,7 @@ const HealthTipCard = ({ item, onPress }) => {
       case 'Alimentação': return { backgroundColor: '#DCFCE7', color: '#166534' };
       case 'Exercícios': return { backgroundColor: '#FFF7ED', color: '#9A3412' };
       case 'Saúde Mental': return { backgroundColor: '#EEF2FF', color: '#4338CA' };
-      default: return { backgroundColor: '#F3F4F6', color: '#4B5563' };
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-    }
+      default: return { backgroundColor: '#F3F4F6', color: '#4B5563' };    }
   };
 
   const categoryStyle = getCategoryStyle(item.category);
@@ -162,7 +155,6 @@ const HealthTipCard = ({ item, onPress }) => {
   );
 };
 
-<<<<<<< HEAD
 // Tela de detalhes da dica
 const DetailView = ({ tip, onClose, isFavorited, onToggleFavorite }) => {
 
@@ -218,24 +210,18 @@ const DetailView = ({ tip, onClose, isFavorited, onToggleFavorite }) => {
 };
 
 // Tela principal
-=======
 
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
 export default function HealthTabScreen() {
     const [isLoading, setIsLoading] = useState(true);
     const [allData, setAllData] = useState<HealthInfo[]>([]);
     const [filteredData, setFilteredData] = useState<HealthInfo[]>([]);
     const [viewMode, setViewMode] = useState('all');
-<<<<<<< HEAD
     const [selectedCategory, setSelectedCategory] = useState<HealthCategory | 'all'>('all');
-=======
-    const [selectedCategory, setSelectedCategory] = useState('all');
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-    const [searchTerm, setSearchTerm] = useState('');
+
+    const [selectedCategory, setSelectedCategory] = useState('all');    const [searchTerm, setSearchTerm] = useState('');
     const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
     const [selectedTip, setSelectedTip] = useState<HealthInfo | null>(null);
 
-<<<<<<< HEAD
     const categories = useMemo(() => {
         const uniqueCategories = Array.from(new Set(allData.map(item => item.category)));
         return [{ id: 'all', name: 'Todas' }, ...uniqueCategories.map(cat => ({ id: cat, name: cat }))];
@@ -251,8 +237,7 @@ export default function HealthTabScreen() {
         setBookmarkedIds(newSet);
     };
 
-=======
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
+
     useEffect(() => {
         const loadInitialData = async () => {
             setIsLoading(true);
@@ -282,17 +267,13 @@ export default function HealthTabScreen() {
 
     if (isLoading) {
       return (
-<<<<<<< HEAD
         <SafeAreaView style={styles.centered}><ActivityIndicator size="large" color="#339949ff" /></SafeAreaView>
-=======
+
         // O container de loading não precisa do header, pois o navegador já mostra
-        <View style={styles.centered}><ActivityIndicator size="large" /></View>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-      );
+        <View style={styles.centered}><ActivityIndicator size="large" /></View>      );
     }
     
     if (selectedTip) {
-<<<<<<< HEAD
       return <DetailView 
                 tip={selectedTip} 
                 onClose={() => setSelectedTip(null)} 
@@ -303,7 +284,7 @@ export default function HealthTabScreen() {
     
     return (
     <SafeAreaView style={styles.container}>
-=======
+
       return <DetailView tip={selectedTip} onClose={() => setSelectedTip(null)} />;
     }
     
@@ -311,9 +292,7 @@ export default function HealthTabScreen() {
     // AQUI ESTÁ A MUDANÇA:
     // A tela agora é envolvida por um <View> com flex: 1, permitindo que a 
     // FlatList ocupe o espaço correto abaixo do header fornecido pelo navegador.
-    <View style={styles.container}>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-      <FlatList
+    <View style={styles.container}>      <FlatList
         ListHeaderComponent={
           <>
             <View style={styles.header}>
@@ -322,13 +301,12 @@ export default function HealthTabScreen() {
             </View>
             
             <View style={styles.toggleContainer}>
-<<<<<<< HEAD
                 <TouchableOpacity style={[styles.toggleButton, viewMode === 'all' && styles.toggleActive]} onPress={() => setViewMode('all')}>
                     <BookOpen size={16} color={viewMode === 'all' ? '#4A90E2' : '#4B5563'} />
                     <Text style={[styles.toggleText, viewMode === 'all' && styles.toggleTextActive]}>Todas as Dicas</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.toggleButton, viewMode === 'favorites' && styles.toggleActive]} onPress={() => setViewMode('favorites')}>
-=======
+
                 <TouchableOpacity 
                     style={[styles.toggleButton, viewMode === 'all' && styles.toggleActive]}
                     onPress={() => setViewMode('all')}
@@ -339,37 +317,29 @@ export default function HealthTabScreen() {
                 <TouchableOpacity 
                     style={[styles.toggleButton, viewMode === 'favorites' && styles.toggleActive]}
                     onPress={() => setViewMode('favorites')}
-                >
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-                    <Star size={16} color={viewMode === 'favorites' ? '#4A90E2' : '#4B5563'} />
+                >                    <Star size={16} color={viewMode === 'favorites' ? '#4A90E2' : '#4B5563'} />
                     <Text style={[styles.toggleText, viewMode === 'favorites' && styles.toggleTextActive]}>Favoritas ({bookmarkedIds.size})</Text>
                 </TouchableOpacity>
             </View>
 
             <View style={styles.searchContainer}>
               <Search size={20} color="#A0AEC0" />
-<<<<<<< HEAD
               <TextInput style={styles.searchInput} placeholder="Buscar por dicas..." value={searchTerm} onChangeText={setSearchTerm}/>
-=======
+
               <TextInput
                 style={styles.searchInput}
                 placeholder="Buscar por dicas, serviços..."
                 value={searchTerm}
                 onChangeText={setSearchTerm}
-              />
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-            </View>
+              />            </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
               {categories.map(cat => (
                 <TouchableOpacity
                   key={cat.id}
-<<<<<<< HEAD
                   onPress={() => setSelectedCategory(cat.id as HealthCategory | 'all')}
-=======
-                  onPress={() => setSelectedCategory(cat.id)}
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-                  style={[styles.categoryButton, selectedCategory === cat.id && styles.categoryActive]}
+
+                  onPress={() => setSelectedCategory(cat.id)}                  style={[styles.categoryButton, selectedCategory === cat.id && styles.categoryActive]}
                 >
                   <Text style={[styles.categoryButtonText, selectedCategory === cat.id && styles.categoryTextActive]}>{cat.name}</Text>
                 </TouchableOpacity>
@@ -378,7 +348,6 @@ export default function HealthTabScreen() {
           </>
         }
         data={filteredData}
-<<<<<<< HEAD
         renderItem={({ item }) => (<HealthTipCard item={item} onPress={(tip) => setSelectedTip(tip)} />)}
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.listContainer}
@@ -392,7 +361,7 @@ export default function HealthTabScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F5F7' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F4F5F7' },
-=======
+
         renderItem={({ item }) => (
           <HealthTipCard item={item} onPress={(tip) => setSelectedTip(tip)} />
         )}
@@ -411,9 +380,7 @@ const styles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F5F7' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },  header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
   title: { fontSize: 28, fontWeight: 'bold', color: '#121212' },
   subtitle: { fontSize: 16, color: '#555', marginTop: 4 },
   toggleContainer: { flexDirection: 'row', backgroundColor: '#E5E7EB', margin: 16, borderRadius: 12, padding: 4 },
@@ -440,33 +407,27 @@ const styles = StyleSheet.create({
   emptyContainer: { alignItems: 'center', marginTop: 50 },
   emptyText: { fontSize: 18, fontWeight: '600', color: '#495057' },
   emptySubtext: { fontSize: 14, color: '#6c757d', marginTop: 8 },
-<<<<<<< HEAD
   detailContainer: { flex: 1, paddingHorizontal: 20 },
   detailControlsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10 },
   iconButton: { padding: 8 },
-=======
+
   detailContainer: { flex: 1, padding: 20 },
-  backButton: { position: 'absolute', top: 20, left: 20, zIndex: 1, backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: 20, padding: 8 },
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  detailHeader: { alignItems: 'center', marginBottom: 20 },
+  backButton: { position: 'absolute', top: 20, left: 20, zIndex: 1, backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: 20, padding: 8 },  detailHeader: { alignItems: 'center', marginBottom: 20 },
   detailTitle: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginTop: 15 },
   detailMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 8, opacity: 0.7 },
   detailMetaText: { marginLeft: 6, fontSize: 14, color: '#666' },
   detailContent: { fontSize: 16, lineHeight: 26, color: '#343a40' },
   section: { marginTop: 25 },
-<<<<<<< HEAD
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#1F2937', marginLeft: 8 },
   listItem: { flexDirection: 'row', marginBottom: 10, paddingLeft: 8 },
   bullet: { marginRight: 10, fontSize: 16, lineHeight: 26, color: '#339949ff' },
   listText: { flex: 1, fontSize: 16, lineHeight: 26, color: '#495057' },
-=======
+
   sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, borderBottomWidth: 1, borderBottomColor: '#e9ecef', paddingBottom: 5 },
   tipItem: { flexDirection: 'row', marginBottom: 8 },
   bullet: { marginRight: 10, fontSize: 16, lineHeight: 24 },
   tipText: { flex: 1, fontSize: 16, lineHeight: 24, color: '#495057' },
   infoItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 12, borderRadius: 8 },
-  infoText: { marginLeft: 10, fontSize: 16, color: '#343a40' },
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  sourceText: { textAlign: 'center', color: '#ADB5BD', paddingBottom: 40, paddingTop: 20, fontSize: 12 },
+  infoText: { marginLeft: 10, fontSize: 16, color: '#343a40' },  sourceText: { textAlign: 'center', color: '#ADB5BD', paddingBottom: 40, paddingTop: 20, fontSize: 12 },
 });

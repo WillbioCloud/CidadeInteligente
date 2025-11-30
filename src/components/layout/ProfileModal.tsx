@@ -1,45 +1,33 @@
-<<<<<<< HEAD
 // src/components/layout/ProfileModal.tsx (VERSÃO FINAL COM NOVOS BOTÕES)
-=======
-// src/components/layout/ProfileModal.tsx (VERSÃO COM NAVEGAÇÃO CORRIGIDA)
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
 
+// src/components/layout/ProfileModal.tsx (VERSÃO COM NAVEGAÇÃO CORRIGIDA)
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TouchableWithoutFeedback, Image, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useUserStore } from '../../hooks/useUserStore';
-<<<<<<< HEAD
 import { X, User, Award, Settings, LogOut, Camera, Building, Edit3 } from '../Icons'; // Adicionado Edit3
-=======
-import { X, User, Award, Settings, LogOut, Camera, Building } from '../Icons';
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-import LoteamentoSelector from '../LoteamentoSelector';
+
+import { X, User, Award, Settings, LogOut, Camera, Building } from '../Icons';import LoteamentoSelector from '../LoteamentoSelector';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 
-<<<<<<< HEAD
 // Botão reutilizável para o menu
 const ProfileButton = ({ icon: Icon, label, onPress, color = '#1F2937' }) => (
   <TouchableOpacity style={styles.actionButton} onPress={onPress}>
     <Icon size={22} color={color} style={styles.actionIcon} />
     <Text style={[styles.actionText, { color: color }]}>{label}</Text>
-=======
+
 const ProfileButton = ({ icon: Icon, label, onPress }) => (
   <TouchableOpacity style={styles.actionButton} onPress={onPress}>
     <Icon size={22} color="#374151" style={styles.actionIcon} />
-    <Text style={styles.actionText}>{label}</Text>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  </TouchableOpacity>
+    <Text style={styles.actionText}>{label}</Text>  </TouchableOpacity>
 );
 
 export default function ProfileModal({ isVisible, onClose, onLogout }) {
     const navigation = useNavigation();
-<<<<<<< HEAD
     const { userProfile, setUserProfile, isClient } = useUserStore(); // Pegamos o isClient
-=======
-    const { userProfile, setUserProfile } = useUserStore();
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-    const [isSelectorVisible, setSelectorVisible] = useState(false);
+
+    const { userProfile, setUserProfile } = useUserStore();    const [isSelectorVisible, setSelectorVisible] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
@@ -65,16 +53,13 @@ export default function ProfileModal({ isVisible, onClose, onLogout }) {
             const image = result.assets[0];
             setUploading(true);
             
-<<<<<<< HEAD
             // Lógica de upload (simplificada por enquanto)
             setAvatarUrl(image.uri);
             // Atualiza o store com a nova URL
             useUserStore.getState().updateUserProfile({ avatar_url: image.uri });
-=======
+
             setAvatarUrl(image.uri);
             setUserProfile({ ...userProfile, avatar_url: image.uri }, userProfile.properties);
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-
             setUploading(false);
             Alert.alert('Sucesso', 'Foto de perfil atualizada!');
         }
@@ -84,12 +69,9 @@ export default function ProfileModal({ isVisible, onClose, onLogout }) {
         onClose();
         setTimeout(() => {
             navigation.navigate(screenName, params);
-<<<<<<< HEAD
         }, 150);
-=======
-        }, 100);
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-    };
+
+        }, 100);    };
 
     return (
       <>
@@ -118,7 +100,6 @@ export default function ProfileModal({ isVisible, onClose, onLogout }) {
                                 </View>
                             </TouchableOpacity>
                             <Text style={styles.userName}>{userProfile?.full_name || 'Usuário'}</Text>
-<<<<<<< HEAD
                             <Text style={styles.userStatus}>{isClient ? 'Cliente' : 'Visitante'}</Text>
                         </View>
                         
@@ -129,13 +110,11 @@ export default function ProfileModal({ isVisible, onClose, onLogout }) {
                                 label="Editar Perfil"
                                 onPress={() => navigateTo('EditProfile')} // Nova tela
                             />
-=======
+
                             <Text style={styles.userStatus}>{userProfile?.isClient ? 'Cliente' : 'Visitante'}</Text>
                         </View>
                         
-                        <View style={styles.actionsSection}>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-                            <ProfileButton
+                        <View style={styles.actionsSection}>                            <ProfileButton
                                 icon={Building}
                                 label="Meus Empreendimentos"
                                 onPress={() => {
@@ -146,29 +125,20 @@ export default function ProfileModal({ isVisible, onClose, onLogout }) {
                              <ProfileButton
                                 icon={Award}
                                 label="Minhas Conquistas"
-<<<<<<< HEAD
-=======
-                                // AQUI ESTÁ A MUDANÇA: Apontando para a nova tela 'Achievements'
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-                                onPress={() => navigateTo('Achievements')}
+                                // AQUI ESTÁ A MUDANÇA: Apontando para a nova tela 'Achievements'                                onPress={() => navigateTo('Achievements')}
                             />
                             <ProfileButton
                                 icon={Settings}
                                 label="Configurações"
-<<<<<<< HEAD
                                 onPress={() => navigateTo('Settings')} // Nova tela
-=======
-                                onPress={() => navigateTo('Placeholder', { screenName: 'Configurações' })}
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-                            />
+
+                                onPress={() => navigateTo('Placeholder', { screenName: 'Configurações' })}                            />
                             <ProfileButton
                                 icon={LogOut}
                                 label="Sair da Conta"
                                 onPress={onLogout}
-<<<<<<< HEAD
                                 color="#EF4444" // Cor vermelha para destaque
-=======
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
+
                             />
                         </View>
                     </View>
@@ -194,9 +164,6 @@ const styles = StyleSheet.create({
     actionsSection: { borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingTop: 8 },
     actionButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16 },
     actionIcon: { marginRight: 16 },
-<<<<<<< HEAD
     actionText: { fontSize: 16, fontWeight: '500' },
-=======
-    actionText: { fontSize: 16, color: '#1F2937' },
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-});
+
+    actionText: { fontSize: 16, color: '#1F2937' },});

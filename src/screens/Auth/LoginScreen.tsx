@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/screens/Auth/LoginScreen.tsx
 
 import React, { useState } from 'react';
@@ -48,7 +47,7 @@ export default function LoginScreen({ navigation }) {
     // O AppRouter irá tratar da navegação após o login ser bem-sucedido
     setLoading(false);
   };
-=======
+
 // Local: src/screens/Auth/LoginScreen.tsx
 
 import React, { useState } from 'react';
@@ -78,13 +77,10 @@ export default function LoginScreen({ navigation }) {
     } //
     setLoading(false); //
   }; //
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <View style={styles.content}>
-<<<<<<< HEAD
         <Text style={styles.title}>Login</Text>
         <Text style={styles.subtitle}>Bem-vindo de volta!</Text>
 
@@ -106,7 +102,7 @@ export default function LoginScreen({ navigation }) {
             <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
                 <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
-=======
+
         <View style={styles.header}>
           <Text style={styles.title}>Bem-vindo de volta!</Text>
           <Text style={styles.subtitle}>Entre na sua conta para continuar</Text>
@@ -147,31 +143,25 @@ export default function LoginScreen({ navigation }) {
             <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
               <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
-          </View>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-        </View>
+          </View>        </View>
 
         <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
           {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Entrar</Text>}
         </TouchableOpacity>
 
-<<<<<<< HEAD
         <SocialLogins />
 
         <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Register')}>
           <Text style={styles.footerText}>Não tem uma conta? <Text style={styles.linkText}>Cadastre-se</Text></Text>
-=======
+
         <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.footerText}>Não tem conta? <Text style={styles.linkText}>Cadastre-se</Text></Text>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-        </TouchableOpacity>
+          <Text style={styles.footerText}>Não tem conta? <Text style={styles.linkText}>Cadastre-se</Text></Text>        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-<<<<<<< HEAD
   container: { flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center' },
   content: { paddingHorizontal: 24, },
   title: { fontSize: 28, fontWeight: 'bold', color: '#111827', textAlign: 'center' },
@@ -193,7 +183,7 @@ const styles = StyleSheet.create({
   footerButton: { marginTop: 30, alignItems: 'center' },
   footerText: { fontSize: 16, color: '#6B7280' },
   linkText: { color: '#16A34A', fontWeight: 'bold' },
-=======
+
   // Seus estilos originais
   container: { flex: 1, backgroundColor: '#F9FAFB', justifyContent: 'center', paddingHorizontal: 24 }, //
   content: { width: '100%', justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 20}, // O estilo aqui foi removido para evitar duplicidade e usar o do container
@@ -231,6 +221,4 @@ const styles = StyleSheet.create({
     color: '#4F46E5',
     fontWeight: '600',
     fontSize: 14,
-  },
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-});
+  },});

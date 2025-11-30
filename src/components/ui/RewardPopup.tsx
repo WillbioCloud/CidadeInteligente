@@ -15,13 +15,10 @@ interface RewardPopupProps {
   theme: ThemeColors;
 }
 
-<<<<<<< HEAD
 export default function RewardPopup(props: RewardPopupProps) {
   const { isVisible, onClose, title, points, theme } = props;
-=======
-export default function RewardPopup({ isVisible, onClose, title, points, theme }: RewardPopupProps) {
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  const scale = useSharedValue(0.7);
+
+export default function RewardPopup({ isVisible, onClose, title, points, theme }: RewardPopupProps) {  const scale = useSharedValue(0.7);
   const opacity = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => ({

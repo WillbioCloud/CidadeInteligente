@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/screens/Profile/AchievementsScreen.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -156,7 +155,7 @@ export default function AchievementsScreen({ navigation }) {
           ListEmptyComponent={<Text style={styles.emptyText}>Nenhuma conquista encontrada.</Text>}
         />
       )}
-=======
+
 // src/screens/Profile/AchievementsScreen.tsx (VERSÃO COM RODAPÉ ESTÁTICO)
 
 import React, { useState } from 'react';
@@ -278,13 +277,10 @@ export default function AchievementsScreen({ navigation }) {
             <View key={ach} style={styles.tag}><Text style={styles.tagText}>{ach}</Text></View>
           )) : <Text style={styles.noTagText}>Nenhuma selecionada</Text>}
         </View>
-      </View>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-    </SafeAreaView>
+      </View>    </SafeAreaView>
   );
 }
 
-<<<<<<< HEAD
 // --- ESTILOS (sem alterações) ---
 const styles = StyleSheet.create({
     container: { flex: 1 },
@@ -341,7 +337,7 @@ const styles = StyleSheet.create({
     statusTextCompleted: { fontSize: 14, color: '#6EE7B7', fontWeight: '600', marginTop: 12 },
     emptyText: { color: 'white', textAlign: 'center', marginTop: 50 },
 })
-=======
+
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F8FAFC' }, // O container principal agora usa flex
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingLeft: 20 },
@@ -378,4 +374,3 @@ const styles = StyleSheet.create({
     tagText: { color: '#4338CA', fontWeight: '500' },
     noTagText: { color: '#9CA3AF', fontStyle: 'italic' },
 });
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391

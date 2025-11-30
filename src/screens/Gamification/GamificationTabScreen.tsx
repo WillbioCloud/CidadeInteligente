@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/screens/Gamification/GamificationTabScreen.tsx (VERSÃO CORRIGIDA E OTIMIZADA)
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -754,7 +753,7 @@ const styles = StyleSheet.create({
         color: '#10B981',
     },
     
-=======
+
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -1015,6 +1014,4 @@ const styles = StyleSheet.create({
     benefitItem: { alignItems: 'center', backgroundColor: 'white', borderRadius: 12, padding: 12, width: '45%', margin: '2.5%', borderWidth: 1, borderColor: '#E2E8F0' },
     benefitText: { marginTop: 8, fontSize: 12, color: '#4A5568', fontWeight: '500' },
     ctaButton: { backgroundColor: '#4A90E2', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 25 },
-    ctaButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-});
+    ctaButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },});

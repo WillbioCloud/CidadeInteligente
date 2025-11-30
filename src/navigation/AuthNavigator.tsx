@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/navigation/AuthNavigator.tsx
 
 import React from 'react';
@@ -9,17 +8,14 @@ import SplashScreen from '../screens/Auth/SplashScreen';
 import WelcomeScreen from '../screens/Auth/WelcomeScreen';
 
 // Importe as telas existentes
-=======
 // Local: src/navigation/AuthNavigator.tsx
 
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
 import LoginScreen from '../screens/Auth/LoginScreen';
 import RegisterScreen from '../screens/Auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
 
-<<<<<<< HEAD
 const AuthStack = createStackNavigator();
 
 export default function AuthNavigator() {
@@ -57,7 +53,6 @@ export default function AuthNavigator() {
     </AuthStack.Navigator>
   );
 }
-=======
 const Stack = createStackNavigator();
 
 function AuthNavigator() {
@@ -71,4 +66,3 @@ function AuthNavigator() {
 }
 
 export default AuthNavigator;
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391

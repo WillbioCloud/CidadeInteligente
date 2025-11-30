@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/components/home/InstagramSection.tsx
 
 import React, { useState, useEffect } from 'react';
@@ -135,7 +134,7 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     margin: 20,
   }
-=======
+
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, Linking, ActivityIndicator, Modal, SafeAreaView } from 'react-native';
 import { supabase } from '../../lib/supabase';
@@ -267,6 +266,4 @@ const styles = StyleSheet.create({
   modalContent: { padding: 16 },
   modalCaption: { fontSize: 16, lineHeight: 24 },
   viewOnInstaButton: { backgroundColor: '#16A34A', padding: 14, borderRadius: 12, alignItems: 'center', marginTop: 20 },
-  viewOnInstaButtonText: { color: 'white', fontWeight: 'bold' }
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-});
+  viewOnInstaButtonText: { color: 'white', fontWeight: 'bold' }});

@@ -1,16 +1,12 @@
-<<<<<<< HEAD
 // src/screens/Gamification/NonClientGamificationScreen.tsx (VERSÃO FINAL - IGUAL AO CONCEPT)
 
-=======
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
+
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import { Lock, Trophy, Target, Gift, Star, Crown } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-<<<<<<< HEAD
 import { LinearGradient } from 'expo-linear-gradient';
-=======
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
+
 
 const BenefitItem = ({ icon: Icon, text }) => (
   <View style={styles.benefitItem}>
@@ -26,40 +22,32 @@ export const NonClientGamificationScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-<<<<<<< HEAD
           <Lock size={64} color="#CBD5E1" />
           <View style={styles.trophyBadge}>
             <Trophy size={16} color="white" />
-=======
+
           <Lock size={64} color="#A0AEC0" />
           <View style={styles.trophyBadge}>
-            <Trophy size={20} color="white" />
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-          </View>
+            <Trophy size={20} color="white" />          </View>
         </View>
 
         <Text style={styles.title}>Área Exclusiva para Clientes</Text>
         <Text style={styles.subtitle}>
-<<<<<<< HEAD
           Você ainda não possui nenhum produto da nossa empresa.
           Adquira um lote em nossos empreendimentos e desbloqueie um mundo de recompensas e benefícios exclusivos!
         </Text>
 
         <Text style={styles.unlockTitle}>O que você vai desbloquear:</Text>
         
-=======
-          Adquira um lote em nossos empreendimentos e desbloqueie um mundo de recompensas e benefícios!
-        </Text>
 
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-        <View style={styles.benefitsGrid}>
+          Adquira um lote em nossos empreendimentos e desbloqueie um mundo de recompensas e benefícios!
+        </Text>        <View style={styles.benefitsGrid}>
           <BenefitItem icon={Target} text="Missões Exclusivas" />
           <BenefitItem icon={Gift} text="Recompensas" />
           <BenefitItem icon={Star} text="Sistema de Níveis" />
           <BenefitItem icon={Crown} text="Conquistas" />
         </View>
 
-<<<<<<< HEAD
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
           <LinearGradient
             colors={['#6D28D9', '#4F46E5']}
@@ -69,14 +57,12 @@ export const NonClientGamificationScreen = () => {
           >
             <Text style={styles.ctaButtonText}>Ver Nossos Loteamentos</Text>
           </LinearGradient>
-=======
+
         <TouchableOpacity 
           style={styles.ctaButton}
           onPress={() => navigation.navigate('Home')}
         >
-          <Text style={styles.ctaButtonText}>Ver Nossos Loteamentos</Text>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-        </TouchableOpacity>
+          <Text style={styles.ctaButtonText}>Ver Nossos Loteamentos</Text>        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -85,12 +71,9 @@ export const NonClientGamificationScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-<<<<<<< HEAD
     backgroundColor: '#F8FAFC',
-=======
-    backgroundColor: '#F7FAFC',
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  },
+
+    backgroundColor: '#F7FAFC',  },
   content: {
     flex: 1,
     justifyContent: 'center',
@@ -101,7 +84,6 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-<<<<<<< HEAD
     backgroundColor: '#F1F5F9', // Cor mais clara
     justifyContent: 'center',
     alignItems: 'center',
@@ -120,7 +102,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 3,
     borderColor: '#F8FAFC',
-=======
+
     backgroundColor: '#E2E8F0',
     justifyContent: 'center',
     alignItems: 'center',
@@ -137,22 +119,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#F7FAFC',
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  },
+    borderColor: '#F7FAFC',  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-<<<<<<< HEAD
     color: '#1E293B',
-=======
-    color: '#2D3748',
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-    textAlign: 'center',
+
+    color: '#2D3748',    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-<<<<<<< HEAD
     color: '#64748B',
     textAlign: 'center',
     marginTop: 8,
@@ -165,17 +141,14 @@ const styles = StyleSheet.create({
     color: '#475569',
     textAlign: 'center',
     marginBottom: 16,
-=======
+
     color: '#718096',
     textAlign: 'center',
     marginTop: 8,
-    lineHeight: 24,
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  },
+    lineHeight: 24,  },
   benefitsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-<<<<<<< HEAD
     justifyContent: 'space-between',
     width: '100%',
   },
@@ -203,7 +176,7 @@ const styles = StyleSheet.create({
     shadowColor: '#4F46E5',
     shadowOpacity: 0.3,
     shadowRadius: 10,
-=======
+
     justifyContent: 'center',
     marginTop: 32,
     marginBottom: 32,
@@ -228,9 +201,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4A90E2',
     paddingVertical: 14,
     paddingHorizontal: 32,
-    borderRadius: 25,
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  },
+    borderRadius: 25,  },
   ctaButtonText: {
     color: 'white',
     fontSize: 16,

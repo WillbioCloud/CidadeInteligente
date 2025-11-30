@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // screens/More/MoreTabScreen.tsx (VERSÃO FINAL COM TIPAGEM CORRIGIDA)
 
 import React from 'react';
@@ -10,7 +9,7 @@ import {
 import { MoreNavigationProp, MoreStackParamList } from '../../navigation/types';
 
 // Arrays com os dados das seções e ações rápidas
-=======
+
 // screens/More/MoreTabScreen.tsx (VERSÃO COMPLETA E CORRIGIDA)
 
 import React from 'react';
@@ -20,9 +19,7 @@ import {
 } from '../../components/Icons';
 // A linha "import CustomHeader" foi REMOVIDA daqui.
 
-// Seus componentes 'sections' e 'quickActions' continuam os mesmos
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-const sections = [
+// Seus componentes 'sections' e 'quickActions' continuam os mesmosconst sections = [
   {
     title: 'Eventos & Comunidade',
     items: [
@@ -56,7 +53,6 @@ const quickActions = [
     { id: 'IPTU', icon: '🧾', title: 'IPTU', color: '#8B5CF6' }
 ];
 
-<<<<<<< HEAD
 // --- AQUI ESTÁ A CORREÇÃO PRINCIPAL ---
 // A prop 'navigation' agora tem o tipo 'MoreNavigationProp' que definimos
 export default function MoreTabScreen({ navigation }: { navigation: MoreNavigationProp }) {
@@ -71,7 +67,7 @@ export default function MoreTabScreen({ navigation }: { navigation: MoreNavigati
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
     >
-=======
+
 export default function MoreTabScreen({ navigation }) {
   const handleNavigation = (screenId: string) => {
     navigation.navigate(screenId);
@@ -86,21 +82,16 @@ export default function MoreTabScreen({ navigation }) {
       showsVerticalScrollIndicator={false} 
       contentContainerStyle={styles.scrollContent}
     >
-      {/* A linha <CustomHeader /> foi REMOVIDA */}
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-      <View style={styles.header}>
+      {/* A linha <CustomHeader /> foi REMOVIDA */}      <View style={styles.header}>
           <Text style={styles.title}>Mais Serviços</Text>
           <Text style={styles.subtitle}>Explore todas as funcionalidades do app</Text>
       </View>
 
       <View style={styles.quickActionsGrid}>
           {quickActions.map((action) => (
-<<<<<<< HEAD
             <TouchableOpacity key={action.id} style={[styles.quickActionCard, { backgroundColor: action.color }]} onPress={() => handleNavigation(action.id as keyof MoreStackParamList)}>
-=======
-            <TouchableOpacity key={action.id} style={[styles.quickActionCard, { backgroundColor: action.color }]} onPress={() => handleNavigation(action.id)}>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-              <Text style={styles.quickActionIcon}>{action.icon}</Text>
+
+            <TouchableOpacity key={action.id} style={[styles.quickActionCard, { backgroundColor: action.color }]} onPress={() => handleNavigation(action.id)}>              <Text style={styles.quickActionIcon}>{action.icon}</Text>
               <Text style={styles.quickActionTitle}>{action.title}</Text>
             </TouchableOpacity>
           ))}
@@ -112,12 +103,9 @@ export default function MoreTabScreen({ navigation }) {
               {section.items.map((item) => {
                   const Icon = item.icon;
                   return (
-<<<<<<< HEAD
                       <TouchableOpacity key={item.id} style={styles.menuItem} onPress={() => handleNavigation(item.id as keyof MoreStackParamList)}>
-=======
-                      <TouchableOpacity key={item.id} style={styles.menuItem} onPress={() => handleNavigation(item.id)}>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-                          <View style={styles.iconContainer}>
+
+                      <TouchableOpacity key={item.id} style={styles.menuItem} onPress={() => handleNavigation(item.id)}>                          <View style={styles.iconContainer}>
                               <Icon size={22} color="#3B82F6"/>
                           </View>
                           <View style={styles.menuItemTextContainer}>

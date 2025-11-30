@@ -2,9 +2,8 @@
 
 import { StyleSheet } from 'react-native';
 
-<<<<<<< HEAD
 const COLORS = {
-=======
+
 const FONT_FAMILY = {
   regular: 'Inter-Regular',
   medium: 'Inter-Medium',
@@ -12,9 +11,7 @@ const FONT_FAMILY = {
   bold: 'Inter-Bold',
 };
 
-const PALETTE = {
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  blue: '#4A90E2',
+const PALETTE = {  blue: '#4A90E2',
   green: '#50E3C2',
   orange: '#F5A623',
   red: '#D0021B',
@@ -24,7 +21,6 @@ const PALETTE = {
   gray_light: '#CCCCCC',
   gray_extralight: '#F4F5F7',
   white: '#FFFFFF',
-<<<<<<< HEAD
   dark_blue: '#1E3A8A',
   light_blue: '#3B82F6',
 };
@@ -77,7 +73,7 @@ export const designSystem = {
   SPACING,
   FONT_FAMILY,
   STYLES: globalStyles,
-=======
+
 };
 
 // Mapeamento de Cores por Tema (Loteamento)
@@ -133,6 +129,4 @@ export const designSystem = {
         fontSize: 14,
         color: PALETTE.gray_medium,
     },
-  }),
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-};
+  }),};

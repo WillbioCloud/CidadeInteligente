@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/api/transportApi.ts (VERSÃO ATUALIZADA PARA A NOVA ESTRUTURA)
 
 import { supabase } from '../lib/supabase';
@@ -28,7 +27,7 @@ export const fetchBusSchedules = async (): Promise<BusSchedule[]> => {
     .select('*')
     .eq('status', 'em circulação') // Busca apenas as linhas que estão ativas
     .order('line_code', { ascending: true });
-=======
+
 import { supabase } from '../lib/supabase';
 
 // Interface atualizada para incluir os novos campos do design
@@ -52,17 +51,12 @@ export const fetchBusSchedules = async (loteamentoId: string): Promise<BusSchedu
     .select('*')
     .eq('loteamento_id', loteamentoId) // Filtra pelo loteamento selecionado
     .order('id', { ascending: true });
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-
   if (error) {
     console.error("Erro ao buscar horários de ônibus:", error);
     return [];
   }
 
-<<<<<<< HEAD
   // O Supabase já retorna os dados no formato correto
-=======
-  // O Supabase já retorna os dados no formato correto, não precisamos de mapeamento
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  return data as BusSchedule[];
+
+  // O Supabase já retorna os dados no formato correto, não precisamos de mapeamento  return data as BusSchedule[];
 };

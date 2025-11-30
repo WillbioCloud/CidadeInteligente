@@ -1,0 +1,255 @@
+<<<<<<< HEAD
+// Local: src/api/healthApi.ts (VERSÃO "BUFADA" E ATUALIZADA)
+
+import { supabase } from '../lib/supabase';
+
+// --- INTERFACES (Tipos de Dados) ---
+
+// 2. Ampliando as categorias, como você sugeriu
+export type HealthCategory =
+  | 'Alerta Local'
+  | 'Saúde na Cidade'
+  | 'Alimentação'
+  | 'Exercícios'
+  | 'Saúde Mental'
+  | 'Dengue e Mosquitos'
+  | 'Primeiros Socorros'
+  | 'Receitas Saudáveis'
+  | 'Horta e Jardinagem'
+  | 'Cozinha Funcional'
+  | 'Cidades Inteligentes';
+
+=======
+// Local: src/api/healthApi.ts (VERSÃO COM EXERCÍCIOS DESATIVADOS)
+
+import { supabase } from '../lib/supabase'; //
+
+// --- INTERFACES (Tipos de Dados) ---
+>>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
+export interface HealthInfo {
+  id: number;
+  title: string;
+  excerpt: string;
+  content: string;
+<<<<<<< HEAD
+  category: HealthCategory; // Usando o novo tipo expandido
+=======
+  category: 'Alerta Local' | 'Saúde na Cidade' | 'Alimentação' | 'Exercícios' | 'Saúde Mental';
+>>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
+  readTime: string;
+  imageKey: string;
+  source: string;
+  tips?: string[];
+  address?: string;
+  phone?: string;
+<<<<<<< HEAD
+  created_at: string;
+}
+
+export interface NutritionInfo {
+  // ... (interface existente, sem alterações)
+=======
+  created_at: string; // <-- ADICIONE ESTA LINHA
+}
+
+export interface NutritionInfo {
+>>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
+  name: string;
+  calories: number;
+  serving_size_g: number;
+  fat_total_g: number;
+  fat_saturated_g: number;
+  protein_g: number;
+  sodium_mg: number;
+  potassium_mg: number;
+  cholesterol_mg: number;
+  carbohydrates_total_g: number;
+  fiber_g: number;
+  sugar_g: number;
+}
+
+<<<<<<< HEAD
+export interface HealthAlert {
+  // ... (interface existente, sem alterações)
+  id: string;
+  title: string;
+  message: string;
+  severity: 'info' | 'warning' | 'critical';
+  source: string;
+}
+
+// 5. Novo tipo para receitas, como você pediu
+export interface RecipeInfo {
+  id: number;
+  title: string;
+  ingredients: string[];
+  instructions: string;
+  category: 'Café da Manhã' | 'Almoço' | 'Jantar' | 'Lanches Saudáveis' | 'Pré-treino' | 'Vegano';
+  calories?: number;
+  imageKey?: string;
+}
+=======
+// Define a estrutura de um Alerta de Saúde (NOVO)
+export interface HealthAlert { //
+  id: string; //
+  title: string; //
+  message: string; //
+  severity: 'info' | 'warning' | 'critical'; //
+  source: string; //
+}
+
+// --- INTERFACE DE EXERCÍCIOS DESATIVADA TEMPORARIAMENTE ---
+/*
+export interface Exercise {
+  name: string;
+  type: string;
+  muscle: string;
+  equipment: string;
+  difficulty: string;
+  instructions: string;
+}
+*/
+>>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
+
+
+// --- FUNÇÕES DE BUSCA DE DADOS ---
+
+/**
+ * Busca a lista principal de dicas de saúde da tabela 'health_info'.
+ */
+<<<<<<< HEAD
+export const fetchHealthData = async (): Promise<HealthInfo[]> => {
+  const { data, error } = await supabase
+    .from('health_info')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Erro ao buscar dados de saúde:', error);
+    return [];
+  }
+
+  // Mapeia os nomes do banco (snake_case) para os nomes que o app espera (camelCase)
+  const formattedData = data.map(item => ({
+    ...item,
+    readTime: item.read_time,
+    imageKey: item.image_key,
+  }));
+
+  return formattedData as HealthInfo[];
+};
+
+/**
+ * Busca a lista de alertas importantes da tabela 'health_alerts'.
+ */
+export const fetchHealthAlerts = async (): Promise<HealthAlert[]> => {
+  // ... (função existente, sem alterações)
+  const { data, error } = await supabase
+    .from('health_alerts')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Erro ao buscar alertas de saúde:', error);
+    return [];
+  }
+  return data as HealthAlert[];
+};
+
+/**
+ * CHAMA A EDGE FUNCTION para buscar dados nutricionais na API-Ninjas.
+ */
+export const fetchNutritionInfo = async (query: string): Promise<NutritionInfo[]> => {
+  // ... (função existente, sem alterações)
+=======
+export const fetchHealthData = async (): Promise<HealthInfo[]> => { //
+  const { data, error } = await supabase //
+    .from('health_info') //
+    .select('*') //
+    .order('created_at', { ascending: false }); //
+
+  if (error) { //
+    console.error('Erro ao buscar dados de saúde:', error); //
+    return []; //
+  }
+
+  const formattedData = data.map(item => ({ //
+    ...item, //
+    readTime: item.read_time, //
+    imageKey: item.image_key, //
+  })); //
+
+  return formattedData as HealthInfo[]; //
+};
+
+/**
+ * (NOVO) Busca a lista de alertas importantes da tabela 'health_alerts'.
+ */
+export const fetchHealthAlerts = async (): Promise<HealthAlert[]> => { //
+  const { data, error } = await supabase //
+    .from('health_alerts') //
+    .select('*') //
+    .order('created_at', { ascending: false }); //
+
+  if (error) { //
+    console.error('Erro ao buscar alertas de saúde:', error); //
+    return []; //
+  }
+  return data as HealthAlert[]; //
+};
+
+// --- FUNÇÕES DE BUSCA DE DADOS ---
+// ... (suas outras funções fetchHealthData, fetchHealthAlerts continuam aqui) ...
+
+
+/**
+ * (NOVO) CHAMA A EDGE FUNCTION para buscar dados nutricionais na API-Ninjas.
+ * @param query - O alimento a ser pesquisado (ex: '2 bananas').
+ */
+export const fetchNutritionInfo = async (query: string): Promise<NutritionInfo[]> => {
+  // Invoca a Edge Function 'get-nutrition-info' que criamos no Supabase
+>>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
+  const { data, error } = await supabase.functions.invoke('get-nutrition-info', {
+    body: { query },
+  });
+
+  if (error) {
+    console.error("Erro ao chamar a função de nutrição:", error);
+    return [];
+  }
+  return data as NutritionInfo[];
+};
+
+<<<<<<< HEAD
+// 3. Nova função para buscar por área específica, conforme seu código
+export const fetchHealthByCategory = async (category: HealthCategory): Promise<HealthInfo[]> => {
+  const { data, error } = await supabase
+    .from('health_info')
+    .select('*')
+    .eq('category', category)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(`Erro ao buscar dados da categoria ${category}:`, error);
+    return [];
+  }
+
+  return data as HealthInfo[];
+};
+=======
+
+// --- FUNÇÃO DE EXERCÍCIOS DESATIVADA TEMPORARIAMENTE ---
+/*
+export const fetchExercisesByMuscle = async (muscle: string): Promise<Exercise[]> => {
+  const { data, error } = await supabase.functions.invoke('get-exercises', {
+    body: { muscle },
+  });
+
+  if (error) {
+    console.error("Erro ao chamar a função de exercícios:", error);
+    return [];
+  }
+  return data as Exercise[];
+};
+*/
+>>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391

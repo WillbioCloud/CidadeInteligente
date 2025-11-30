@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/screens/Auth/RegisterScreen.tsx
 
 import React, { useState } from 'react';
@@ -66,7 +65,7 @@ export default function RegisterScreen({ navigation }) {
       Alert.alert(
         'Cadastro Realizado!',
         'Verifique o seu email para confirmar a conta e depois faça o login.',
-=======
+
 // src/screens/Auth/RegisterScreen.tsx (VERSÃO FINAL E CORRIGIDA)
 
 import React, { useState } from 'react';
@@ -129,15 +128,12 @@ export default function RegisterScreen({ navigation }) {
     } else if (data.user) {
       Alert.alert(
         'Cadastro Realizado!',
-        'Verifique seu e-mail para confirmar a conta e depois faça o login.',
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+        'Verifique seu e-mail para confirmar a conta e depois faça o login.',        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
       );
     }
     setLoading(false);
   };
 
-<<<<<<< HEAD
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -185,7 +181,7 @@ export default function RegisterScreen({ navigation }) {
         <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Login')}>
           <Text style={styles.footerText}>Já tem uma conta? <Text style={styles.linkText}>Faça Login</Text></Text>
         </TouchableOpacity>
-=======
+
   const renderStepOne = () => (
     <View>
         <Text style={styles.selectionTitle}>Bem-vindo à FBZ!</Text>
@@ -259,15 +255,12 @@ export default function RegisterScreen({ navigation }) {
           <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Login')}>
             <Text style={styles.footerText}>Já tem uma conta? <Text style={styles.linkText}>Faça Login</Text></Text>
           </TouchableOpacity>
-        </View>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-      </ScrollView>
+        </View>      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-<<<<<<< HEAD
     container: { flex: 1, backgroundColor: '#FFFFFF' },
     content: { paddingHorizontal: 24, paddingVertical: 20, justifyContent: 'center', flexGrow: 1 },
     title: { fontSize: 28, fontWeight: 'bold', color: '#111827', textAlign: 'center' },
@@ -300,7 +293,7 @@ const styles = StyleSheet.create({
         color: '#6B7280',
         flexShrink: 1,
     }
-=======
+
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   content: { justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 20 },
   header: { alignItems: 'center', marginBottom: 30 },
@@ -320,6 +313,4 @@ const styles = StyleSheet.create({
   buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
   footerButton: { marginTop: 30, alignItems: 'center' },
   footerText: { fontSize: 16, color: '#6B7280' },
-  linkText: { color: '#4F46E5', fontWeight: 'bold' },
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-});
+  linkText: { color: '#4F46E5', fontWeight: 'bold' },});

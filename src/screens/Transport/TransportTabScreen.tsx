@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/screens/Transport/TransportTabScreen.tsx (VERSÃO FINAL COM ANIMAÇÃO DE TOQUE E VIBRAÇÃO)
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -245,7 +244,7 @@ const styles = StyleSheet.create({
   animationProgress: { height: '100%', backgroundColor: '#4F46E5', borderRadius: 5 },
   busIcon: { position: 'absolute', width: 20, height: 20, borderRadius: 10, backgroundColor: '#4338CA', justifyContent: 'center', alignItems: 'center' },
   modalInfo: { fontSize: 12, color: '#9CA3AF', textAlign: 'center', fontStyle: 'italic', marginTop: 16 }
-=======
+
 // screens/Transport/TransportTabScreen.tsx (VERSÃO COMPLETA E CORRIGIDA)
 
 import React, { useState, useEffect } from 'react';
@@ -480,6 +479,4 @@ const styles = StyleSheet.create({
   infoCardContent: { flex: 1, marginLeft: 12 },
   infoCardTitle: { fontSize: 16, fontWeight: 'bold', color: '#B45309', marginBottom: 4 },
   infoCardText: { color: '#B45309', lineHeight: 20 },
-  infoListItem: { color: '#B45309', marginTop: 4 },
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-});
+  infoListItem: { color: '#B45309', marginTop: 4 },});

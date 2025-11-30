@@ -6,19 +6,16 @@ import { ALL_ACHIEVEMENTS, CATEGORIES, Achievement } from '../../data/achievemen
 import { designSystem } from '../../styles/designSystem';
 import { X, Trophy, Star, Medal } from 'lucide-react-native';
 
-<<<<<<< HEAD
 /**
  * @typedef {Object} AchievementsCatalogProps
  * @property {boolean} isVisible
  * @property {() => void} onClose
  */
-=======
+
 interface AchievementsCatalogProps {
   isVisible: boolean;
   onClose: () => void;
 }
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-
 const getDifficultyStyle = (difficulty: string) => {
     switch (difficulty) {
       case 'Bronze': return { iconColor: '#A97142', badgeColor: '#F0E6D8' };
@@ -51,14 +48,11 @@ const AchievementItem = ({ achievement }: { achievement: Achievement }) => {
         </View>
     );
 };
-<<<<<<< HEAD
 /** @param {AchievementsCatalogProps} props */
 export default function AchievementsCatalogModal(props) {
-=======
 
-export default function AchievementsCatalog({ isVisible, onClose }: AchievementsCatalogProps) {
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  const [selectedCategory, setSelectedCategory] = useState('all');
+
+export default function AchievementsCatalog({ isVisible, onClose }: AchievementsCatalogProps) {  const [selectedCategory, setSelectedCategory] = useState('all');
 
   const earnedCount = ALL_ACHIEVEMENTS.filter(a => a.earned).length;
 
@@ -67,21 +61,15 @@ export default function AchievementsCatalog({ isVisible, onClose }: Achievements
     : ALL_ACHIEVEMENTS.filter(a => a.category === selectedCategory);
 
   return (
-<<<<<<< HEAD
     <Modal animationType="slide" visible={props.isVisible} onRequestClose={props.onClose}>
-=======
-    <Modal animationType="slide" visible={isVisible} onRequestClose={onClose}>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-      <SafeAreaView style={styles.safeArea}>
+
+    <Modal animationType="slide" visible={isVisible} onRequestClose={onClose}>      <SafeAreaView style={styles.safeArea}>
         <View style={styles.modalContainer}>
           <View style={styles.header}>
             <Text style={designSystem.STYLES.text_h1}>Conquistas</Text>
-<<<<<<< HEAD
             <TouchableOpacity onPress={props.onClose} style={styles.closeButton}>
-=======
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-              <X size={24} color={designSystem.COLORS.gray_dark} />
+
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>              <X size={24} color={designSystem.COLORS.gray_dark} />
             </TouchableOpacity>
           </View>
 

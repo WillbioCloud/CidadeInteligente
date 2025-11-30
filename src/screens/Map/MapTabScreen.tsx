@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/screens/Map/MapTabScreen.tsx (Versão Final Polida)
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
@@ -12,7 +11,7 @@ import { supabase } from '../../lib/supabase';
 import { useUserStore } from '../../hooks/useUserStore';
 import { MapPin, Navigation, Store, Plus, Layers, Satellite, Combine, Compass, Navigation2 } from 'lucide-react-native';
 import { LOTEAMENTOS_CONFIG, ALL_LOTEAMENTOS } from '../../data/loteamentos.data';
-=======
+
 // /src/screens/Map/MapTabScreen.tsx
 
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
@@ -27,13 +26,10 @@ import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchMapLocations, MapLocation, MAP_IMAGE_WIDTH, MAP_IMAGE_HEIGHT } from '../../api/mapApi';
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-<<<<<<< HEAD
 // --- Funções e Interfaces auxiliares ---
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
     const R = 6371e3; const p1 = lat1 * Math.PI/180; const p2 = lat2 * Math.PI/180; const deltaP = (lat2-lat1) * Math.PI/180; const deltaL = (lon2-lon1) * Math.PI/180; const a = Math.sin(deltaP/2) * Math.sin(deltaP/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(deltaL/2) * Math.sin(deltaL/2); const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R * c;
@@ -202,7 +198,7 @@ export default function MapTabScreen() {
         <TouchableOpacity style={[styles.fab, {backgroundColor: '#10B981'}]} onPress={toggleMapTypeMenu}><Layers size={28} color="white" /></TouchableOpacity>
       </View>
     </View>
-=======
+
 const categories = [
   { id: 'all', name: 'Todos', icon: 'grid-outline' },
   { id: 'Comércio', name: 'Comércio', icon: 'cart-outline' },
@@ -436,13 +432,10 @@ export default function MapTabScreen() {
           />
         </View>
       )}
-    </SafeAreaView>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  );
+    </SafeAreaView>  );
 }
 
 const styles = StyleSheet.create({
-<<<<<<< HEAD
   container: { flex: 1 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   bottomSheetBackground: { backgroundColor: '#F8FAFC', borderTopLeftRadius: 20, borderTopRightRadius: 20 },
@@ -477,7 +470,7 @@ const styles = StyleSheet.create({
   calloutTextContainer: { paddingHorizontal: 12, paddingVertical: 10, flex: 1 },
   calloutTitle: { fontSize: 15, fontWeight: 'bold', color: '#1E293B' },
   calloutButton: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(255,255,255,0.9)', padding: 8, borderRadius: 20 },
-=======
+
     container: { flex: 1, backgroundColor: '#F9F9FB' },
     header: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 0 },
     title: { fontSize: 22, fontWeight: 'bold', color: '#121212' },
@@ -537,6 +530,4 @@ const styles = StyleSheet.create({
     },
     infoBoxTitle: { fontSize: 18, fontWeight: 'bold', color: '#121212' },
     infoBoxAddress: { fontSize: 14, color: '#616161', marginTop: 4 },
-    infoBoxCloseButton: { position: 'absolute', top: 10, right: 10, padding: 5 },
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-});
+    infoBoxCloseButton: { position: 'absolute', top: 10, right: 10, padding: 5 },});

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/hooks/useUserStore.ts (VERSÃO FINAL COM A CORREÇÃO DE TENTATIVAS)
 
 import { create } from 'zustand';
@@ -9,16 +8,13 @@ import { Loteamento, LOTEAMENTOS_CONFIG } from '../data/loteamentos.data';
 import { THEME_COLORS } from '../styles/designSystem';
 
 // --- SUAS INTERFACES (sem alterações) ---
-=======
+
 // src/hooks/useUserStore.ts (VERSÃO FINAL COM PERSISTÊNCIA DE CONQUISTAS)
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Loteamento, LOTEAMENTOS_CONFIG } from '../data/loteamentos.data';
-
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-export interface UserProperty {
+import { Loteamento, LOTEAMENTOS_CONFIG } from '../data/loteamentos.data';export interface UserProperty {
   id: string;
   loteamento_id: string;
   quadra: string;
@@ -27,29 +23,23 @@ export interface UserProperty {
 
 export interface Profile {
   id: string;
-<<<<<<< HEAD
   full_name: string;
   isClient?: boolean;
   avatar_url?: string;
-=======
+
   user_status: 'client' | 'non_client';
-  full_name: string;
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  email?: string;
+  full_name: string;  email?: string;
   points?: number;
   level?: number;
   properties?: UserProperty[];
-<<<<<<< HEAD
   dependents?: any[];
   available_achievements?: string[];
   displayed_achievements?: string[];
   phone?: string;
-=======
+
   available_achievements?: string[];
   displayed_achievements?: string[];
-  avatar_url?: string; // Adicionado para a foto de perfil
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-}
+  avatar_url?: string; // Adicionado para a foto de perfil}
 
 export interface ThemeColors {
   primary: string;
@@ -62,7 +52,6 @@ interface UserState {
   session: any | null;
   userProfile: Profile | null;
   selectedLoteamentoId: string | null;
-<<<<<<< HEAD
   _hasHydrated: boolean;
   setSession: (session: any) => void;
   setUserProfile: (profile: Profile | null, properties: UserProperty[]) => void;
@@ -74,7 +63,7 @@ interface UserState {
   setDisplayedAchievements: (achievements: string[]) => void;
   getCurrentLoteamento: () => Loteamento | undefined;
   getThemeColors: () => ThemeColors;
-=======
+
   isClient: boolean;
   setSession: (session: any) => void;
   setUserProfile: (profile: Profile | null, properties: UserProperty[]) => void;
@@ -82,9 +71,7 @@ interface UserState {
   setDisplayedAchievements: (achievements: string[]) => void;
   getCurrentLoteamento: () => Loteamento | undefined;
   getThemeColors: () => ThemeColors;
-  clearStore: () => void;
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-}
+  clearStore: () => void;}
 
 export const useUserStore = create<UserState>()(
   persist(
@@ -92,7 +79,6 @@ export const useUserStore = create<UserState>()(
       session: null,
       userProfile: null,
       selectedLoteamentoId: 'cidade_inteligente',
-<<<<<<< HEAD
       _hasHydrated: false,
 
       setHasHydrated: (state) => set({ _hasHydrated: state }),
@@ -165,7 +151,7 @@ export const useUserStore = create<UserState>()(
             userProfile: state.userProfile ? { ...state.userProfile, ...updates } : null
         }))
       },
-=======
+
       isClient: false,
 
       setSession: (session) => set({ session }),
@@ -195,8 +181,6 @@ export const useUserStore = create<UserState>()(
       },
       
       setSelectedLoteamentoId: (loteamentoId) => set({ selectedLoteamentoId: loteamentoId }),
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-
       setDisplayedAchievements: (achievements) => {
         set(state => ({
           userProfile: state.userProfile
@@ -212,7 +196,6 @@ export const useUserStore = create<UserState>()(
 
       getThemeColors: () => {
         const loteamento = get().getCurrentLoteamento();
-<<<<<<< HEAD
         const defaultTheme = THEME_COLORS['dark_blue'];
         if (!loteamento || !THEME_COLORS[loteamento.color]) {
             return defaultTheme;
@@ -230,7 +213,7 @@ export const useUserStore = create<UserState>()(
           state.setHasHydrated(true);
         }
       },
-=======
+
         const defaultTheme = {
             primary: '#4A90E2', accent: '#60A5FA', light: '#EFF6FF', gradient: ['#4A90E2', '#3B82F6']
         };
@@ -252,8 +235,6 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: 'user-storage',
-      getStorage: () => AsyncStorage,
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-    }
+      getStorage: () => AsyncStorage,    }
   )
 );

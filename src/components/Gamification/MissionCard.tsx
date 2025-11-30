@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -155,7 +154,7 @@ export default function MissionCard({ mission, onActionPress }: MissionCardProps
         </View>
       </Pressable>
     </Animated.View>
-=======
+
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -194,14 +193,11 @@ export default function MissionCard({ mission }: MissionCardProps) {
         </View>
         <Text style={styles.progressText}>{progress}% concluída</Text>
       </View>
-    </View>
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
-  );
+    </View>  );
 }
 
 const styles = StyleSheet.create({
   card: {
-<<<<<<< HEAD
     backgroundColor: '#1E40AF',
     borderRadius: 16,
     padding: 16,
@@ -238,7 +234,7 @@ const styles = StyleSheet.create({
   progressBar: { height: '100%', borderRadius: 5 },
   progressStatus: { fontSize: 12, color: '#FFFFFF', textAlign: 'center', marginTop: 4 },
 });
-=======
+
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 16,
@@ -332,4 +328,3 @@ if (loading) {
   return null; // Ou um componente de <LoadingScreen />
 }
 // ...existing code...
->>>>>>> 6d26a00523b75e2536c4facee5dd0405dba08391
