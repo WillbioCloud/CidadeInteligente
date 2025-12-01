@@ -1,92 +1,217 @@
-// src/screens/Profile/SettingsScreen.tsx
-
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Switch } from 'react-native';
-// Adicione 'FileText' às suas importações de ícones
-import { ArrowLeft, Bell, Palette, Shield, ChevronRight, FileText } from '../../components/Icons';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Bell, Lock, Moon, Trash2, ArrowLeft, ChevronRight } from 'lucide-react-native';
+import { useUserStore } from '../../hooks/useUserStore';
+import { theme } from '../../styles/designSystem';
+import { supabase } from '../../lib/supabase';
 
-const SettingItem = ({ icon: Icon, title, description, onPress, children }) => (
-  <TouchableOpacity style={styles.itemContainer} onPress={onPress} disabled={!onPress}>
-    <Icon size={24} color="#4A90E2" style={styles.icon} />
-    <View style={styles.textContainer}>
-      <Text style={styles.itemTitle}>{title}</Text>
-      {description && <Text style={styles.itemDescription}>{description}</Text>}
-    </View>
-    <View style={styles.actionContainer}>
-      {children ? children : onPress && <ChevronRight size={20} color="#CBD5E1" />}
-    </View>
-  </TouchableOpacity>
-);
-
-export default function SettingsScreen({ navigation }) {
+export default function SettingsScreen() {
+  const navigation = useNavigation();
+  const { signOut, userProfile } = useUserStore();
+  
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Eliminar Conta',
+      'Esta ação é irreversível. Todos os seus dados serão apagados permanentemente. Tem a certeza?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Eliminar', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              // Chama a Edge Function para eliminar o utilizador (se configurada)
+              // ou apenas faz logout por enquanto se não tiveres a função backend pronta
+              const { error } = await supabase.functions.invoke('delete-user');
+              
+              if (error) throw error;
+
+              await signOut();
+              Alert.alert('Conta Eliminada', 'A sua conta foi removida com sucesso.');
+            } catch (error) {
+              Alert.alert('Erro', 'Não foi possível eliminar a conta. Entre em contacto com o suporte.');
+              console.error(error);
+            }
+          }
+        },
+      ]
+    );
+  };
+
+  const SettingItem = ({ 
+    icon: Icon, 
+    label, 
+    value, 
+    onValueChange, 
+    isSwitch = false,
+    onPress,
+    color = theme.colors.text.secondary
+  }: any) => (
+    <TouchableOpacity 
+      style={styles.item} 
+      onPress={isSwitch ? () => onValueChange(!value) : onPress}
+      disabled={isSwitch}
+      activeOpacity={isSwitch ? 1 : 0.7}
+    >
+      <View style={styles.itemLeft}>
+        <View style={[styles.iconContainer, { backgroundColor: `${color}15` }]}>
+          <Icon size={20} color={color} />
+        </View>
+        <Text style={styles.itemLabel}>{label}</Text>
+      </View>
+      
+      {isSwitch ? (
+        <Switch
+          value={value}
+          onValueChange={onValueChange}
+          trackColor={{ false: '#E5E7EB', true: theme.colors.primaryLight }}
+          thumbColor={value ? theme.colors.primary : '#F4F4F5'}
+        />
+      ) : (
+        <ChevronRight size={20} color="#9CA3AF" />
+      )}
+    </TouchableOpacity>
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#333" />
+          <ArrowLeft size={24} color={theme.colors.text.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Configurações</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: 24 }} /> 
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Seções de Notificações e Aparência (sem alterações) */}
-        <Text style={styles.sectionTitle}>Notificações</Text>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.sectionTitle}>Preferências</Text>
         <View style={styles.section}>
-          <SettingItem icon={Bell} title="Notificações Push">
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
-            />
-          </SettingItem>
-        </View>
-
-        <Text style={styles.sectionTitle}>Aparência</Text>
-        <View style={styles.section}>
-          <SettingItem icon={Palette} title="Modo Escuro">
-             <Switch
-              value={darkModeEnabled}
-              onValueChange={setDarkModeEnabled}
-            />
-          </SettingItem>
-        </View>
-
-        {/* Seção de Conta Atualizada */}
-        <Text style={styles.sectionTitle}>Legal & Segurança</Text>
-        <View style={styles.section}>
-          {/* NOVO ITEM ADICIONADO */}
-          <SettingItem
-            icon={FileText}
-            title="Política de Privacidade"
-            onPress={() => navigation.navigate('PrivacyPolicy')}
+          <SettingItem 
+            icon={Bell} 
+            label="Notificações Push" 
+            value={notificationsEnabled} 
+            onValueChange={setNotificationsEnabled} 
+            isSwitch 
+            color="#F59E0B"
           />
-          <SettingItem
-            icon={Shield}
-            title="Segurança da Conta"
-            onPress={() => navigation.navigate('Placeholder', { screenName: 'Segurança' })}
+          <SettingItem 
+            icon={Moon} 
+            label="Modo Escuro" 
+            value={darkMode} 
+            onValueChange={setDarkMode} 
+            isSwitch 
+            color="#6366F1"
           />
         </View>
+
+        <Text style={styles.sectionTitle}>Segurança</Text>
+        <View style={styles.section}>
+          <SettingItem 
+            icon={Lock} 
+            label="Alterar Senha" 
+            onPress={() => navigation.navigate('ForgotPassword')} // Reutilizamos a tela de reset
+            color="#10B981"
+          />
+        </View>
+
+        <Text style={styles.sectionTitle}>Zona de Perigo</Text>
+        <View style={styles.section}>
+          <SettingItem 
+            icon={Trash2} 
+            label="Eliminar Conta" 
+            onPress={handleDeleteAccount} 
+            color="#EF4444"
+          />
+        </View>
+
+        <Text style={styles.footerText}>
+          ID do Utilizador: {userProfile?.id || 'Desconhecido'}
+        </Text>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-// Estilos (sem alterações)
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  headerTitle: { fontSize: 20, fontWeight: 'bold' },
-  backButton: { padding: 8 },
-  scrollContainer: { paddingVertical: 16 },
-  sectionTitle: { fontSize: 14, fontWeight: '600', color: '#64748B', paddingHorizontal: 24, marginVertical: 8 },
-  section: { backgroundColor: 'white', marginHorizontal: 16, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#F1F5F9' },
-  itemContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  icon: { marginRight: 16 },
-  textContainer: { flex: 1 },
-  itemTitle: { fontSize: 16, color: '#1E293B' },
-  itemDescription: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
-  actionContainer: { marginLeft: 'auto' },
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    paddingTop: 50, // Ajuste para status bar
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+  },
+  content: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.text.tertiary,
+    marginBottom: 8,
+    marginTop: 16,
+    textTransform: 'uppercase',
+    marginLeft: 4,
+  },
+  section: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  itemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  itemLabel: {
+    fontSize: 16,
+    color: theme.colors.text.primary,
+    fontWeight: '500',
+  },
+  footerText: {
+    textAlign: 'center',
+    color: '#D1D5DB',
+    fontSize: 12,
+    marginTop: 32,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
 });

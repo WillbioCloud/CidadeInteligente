@@ -1,86 +1,123 @@
-// src/components/Gamification/LevelCard.tsx
-
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Loteamento } from '../../data/loteamentos.data'; // Importando a interface Loteamento
-import { ThemeColors } from '../../hooks/useUserStore';
-import { designSystem, THEME_COLORS } from '../../styles/designSystem';
-import { Award } from 'lucide-react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Trophy } from 'lucide-react-native';
+import { useUserStore } from '../../hooks/useUserStore';
+import { theme } from '../../styles/designSystem';
 
-interface LevelCardProps {
-  level: number;
-  levelName: string;
-  userName: string;
-  loteamento: Loteamento; // <-- MUDANÇA: Recebe o objeto loteamento
-  points: number;
-  pointsToNextLevel: number;
-  progressPercent: number;
-  theme: ThemeColors;
-  onPress: () => void;
-  onLogoPress: () => void;
-}
+const { width } = Dimensions.get('window');
 
-export default function LevelCard({
-  level, levelName, userName, loteamento, // <-- MUDANÇA: Usando a prop loteamento
-  points, pointsToNextLevel, progressPercent, theme,
-  onPress, onLogoPress
-}: LevelCardProps) {
-  
-  const gradientColors = THEME_COLORS[loteamento?.color || 'orange'].gradient;
+export default function LevelCard() {
+  const { userProfile } = useUserStore();
 
-  // Verificação de segurança
-  if (!loteamento) {
-    return null;
-  }
+  // Lógica simulada de nível (pode ser substituída por dados reais do backend)
+  // Exemplo: Nível = (pontos / 100) arredondado para baixo
+  // XP Atual = pontos % 100
+  const totalPoints = 350; // Mock ou userProfile.points
+  const currentLevel = Math.floor(totalPoints / 100) + 1;
+  const currentXP = totalPoints % 100;
+  const nextLevelXP = 100;
+  const progressPercent = (currentXP / nextLevelXP) * 100;
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.container}>
-        <LinearGradient colors={gradientColors} style={styles.card}>
-            <View style={styles.header}>
-                <View style={styles.levelIconContainer}>
-                    <Award size={18} color={designSystem.COLORS.white} />
-                    <Text style={styles.levelText}>Nível {level}</Text>
-                </View>
-                <TouchableOpacity onPress={onLogoPress} style={styles.logoContainer}>
-                    <Image source={loteamento.logo} style={styles.loteamentoLogo} />
-                </TouchableOpacity>
-            </View>
-            
-            <View style={styles.userInfo}>
-                <Text style={styles.levelNameText}>{levelName}</Text>
-                <Text style={styles.pointsText}>{points.toLocaleString('pt-BR')} Pontos</Text>
-            </View>
-            
-            <View style={styles.progressContainer}>
-                <View style={styles.progressBarBackground}>
-                    <View style={[styles.progressBarForeground, { width: `${progressPercent}%` }]} />
-                </View>
-                {pointsToNextLevel > 0 ? (
-                    <Text style={styles.progressText}>{pointsToNextLevel.toLocaleString('pt-BR')} para o próximo nível</Text>
-                ) : (
-                    <Text style={styles.progressText}>Parabéns! Você alcançou o nível máximo!</Text>
-                )}
-            </View>
-        </LinearGradient>
-    </TouchableOpacity>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[theme.colors.primary, theme.colors.primaryDark]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.card}
+      >
+        <View style={styles.contentRow}>
+          <View>
+            <Text style={styles.label}>Nível Atual</Text>
+            <Text style={styles.levelNumber}>{currentLevel}</Text>
+            <Text style={styles.pointsText}>{currentXP} / {nextLevelXP} XP</Text>
+          </View>
+          
+          <View style={styles.iconContainer}>
+            <Trophy size={40} color="#FBBF24" fill="#FBBF24" />
+          </View>
+        </View>
+
+        <View style={styles.progressContainer}>
+          <View style={styles.track}>
+            <View style={[styles.fill, { width: `${progressPercent}%` }]} />
+          </View>
+          <Text style={styles.motivationText}>
+            Faltam apenas {nextLevelXP - currentXP} pontos para o próximo nível!
+          </Text>
+        </View>
+      </LinearGradient>
+    </View>
   );
 }
 
-// Estilos continuam os mesmos...
 const styles = StyleSheet.create({
-    container: { marginHorizontal: designSystem.SPACING.m, marginTop: designSystem.SPACING.m },
-    card: { ...designSystem.STYLES.card, padding: designSystem.SPACING.l, overflow: 'hidden' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    levelIconContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-    levelText: { fontFamily: designSystem.FONT_FAMILY.semiBold, color: designSystem.COLORS.white, fontSize: 14, marginLeft: designSystem.SPACING.s },
-    logoContainer: { padding: designSystem.SPACING.xs, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 20 },
-    loteamentoLogo: { width: 32, height: 32, resizeMode: 'contain' },
-    userInfo: { marginTop: designSystem.SPACING.l },
-    levelNameText: { fontFamily: designSystem.FONT_FAMILY.bold, fontSize: 24, color: designSystem.COLORS.white },
-    pointsText: { fontFamily: designSystem.FONT_FAMILY.semiBold, fontSize: 16, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
-    progressContainer: { marginTop: designSystem.SPACING.l },
-    progressBarBackground: { height: 8, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 4, overflow: 'hidden' },
-    progressBarForeground: { height: 8, backgroundColor: designSystem.COLORS.white, borderRadius: 4 },
-    progressText: { fontFamily: designSystem.FONT_FAMILY.medium, color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 6 },
+  container: {
+    marginVertical: 16,
+    borderRadius: 24,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  card: {
+    padding: 24,
+    borderRadius: 24,
+  },
+  contentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  levelNumber: {
+    fontSize: 48,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    lineHeight: 56,
+  },
+  pointsText: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.9)',
+    fontWeight: '500',
+  },
+  iconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  progressContainer: {
+    marginTop: 8,
+  },
+  track: {
+    height: 8,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  fill: {
+    height: '100%',
+    backgroundColor: '#FBBF24', // Amarelo Dourado
+    borderRadius: 4,
+  },
+  motivationText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+  },
 });

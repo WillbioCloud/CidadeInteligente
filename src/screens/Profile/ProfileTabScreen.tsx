@@ -1,310 +1,310 @@
-// src/screens/Profile/ProfileTabScreen.tsx
-
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useUserStore } from '../../hooks/useUserStore';
-import { supabase } from '../../lib/supabase';
+import React from 'react';
 import { 
-    User, 
-    ChevronRight, 
-    LogOut, 
-    Settings, 
-    Star, 
-    Heart, 
-    HelpCircle, 
-    Award,
-    Building,
-    MoreHorizontal,
-    FilePenLine 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  TouchableOpacity, 
+  Image, 
+  Alert,
+  Switch
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { 
+  User, 
+  Settings, 
+  LogOut, 
+  ChevronRight, 
+  Award, 
+  HelpCircle, 
+  Shield, 
+  Edit2,
+  Bell
 } from 'lucide-react-native';
+import { useUserStore } from '../../hooks/useUserStore';
+import { theme } from '../../styles/designSystem';
+import { ProfileStackParamList } from '../../navigation/types';
 
-const MenuItem = ({ icon: Icon, label, onPress }) => (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
-        <View style={styles.menuIconContainer}>
-            <Icon size={22} color="#4B5563" />
-        </View>
-        <Text style={styles.menuText}>{label}</Text>
-        <ChevronRight size={20} color="#9CA3AF" />
-    </TouchableOpacity>
-);
+type ProfileScreenNavigationProp = StackNavigationProp<ProfileStackParamList>;
 
 export default function ProfileTabScreen() {
-  const navigation = useNavigation();
-  const { userProfile, clearStore } = useUserStore();
-  const [rewardsCount, setRewardsCount] = useState(0);
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
+  const { userProfile, signOut } = useUserStore();
 
-  const userLevel = userProfile?.level || 1;
-  const userXp = userProfile?.xp || 0;
-  const achievementsCount = userProfile?.available_achievements?.length || 0;
-  const userCoins = userProfile?.coins || 0;
-
-  useEffect(() => {
-    const fetchRewardsCount = async () => {
-        if (!userProfile?.id) return;
-        const { count, error } = await supabase
-            .from('user_rewards')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', userProfile.id);
-        if (error) {
-            console.error('Erro ao buscar contagem de recompensas:', error);
-        } else if (count !== null) {
-            setRewardsCount(count);
-        }
-    };
-    fetchRewardsCount();
-  }, [userProfile?.id]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    clearStore();
+  const handleLogout = () => {
+    Alert.alert(
+      'Sair',
+      'Tem a certeza que deseja sair da sua conta?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Sair', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              await signOut();
+              // O AppRouter deteta a mudança de sessão e redireciona para o Login
+            } catch (error) {
+              Alert.alert('Erro', 'Não foi possível sair. Tente novamente.');
+            }
+          }
+        },
+      ]
+    );
   };
 
-  if (!userProfile) {
-      return (
-          <SafeAreaView style={styles.container}>
-              <View style={styles.header}>
-                  <Text style={styles.headerTitle}>Perfil</Text>
-              </View>
-          </SafeAreaView>
-      );
-  }
+  const menuItems = [
+    {
+      id: 'edit_profile',
+      icon: User,
+      label: 'Editar Perfil',
+      onPress: () => navigation.navigate('EditProfile'),
+      color: '#3B82F6', // Azul
+    },
+    {
+      id: 'achievements',
+      icon: Award,
+      label: 'Minhas Conquistas',
+      onPress: () => navigation.navigate('Achievements'),
+      color: '#F59E0B', // Amarelo
+    },
+    {
+      id: 'settings',
+      icon: Settings,
+      label: 'Configurações',
+      onPress: () => navigation.navigate('Settings'),
+      color: '#6B7280', // Cinza
+    },
+    {
+      id: 'privacy',
+      icon: Shield,
+      label: 'Política de Privacidade',
+      onPress: () => navigation.navigate('PrivacyPolicy'),
+      color: '#10B981', // Verde
+    },
+    {
+      id: 'support',
+      icon: HelpCircle,
+      label: 'Ajuda e Suporte',
+      onPress: () => navigation.navigate('Support'),
+      color: '#8B5CF6', // Roxo
+    },
+  ];
+
+  // Iniciais para o avatar padrão
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      
+      {/* Header do Perfil */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Perfil</Text>
-        <TouchableOpacity style={styles.optionsButton}>
-            <MoreHorizontal size={24} color="#334155" />
-        </TouchableOpacity>
+        <View style={styles.avatarContainer}>
+          {userProfile?.avatar_url ? (
+            <Image source={{ uri: userProfile.avatar_url }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarInitials}>
+                {userProfile?.full_name ? getInitials(userProfile.full_name) : 'US'}
+              </Text>
+            </View>
+          )}
+          <TouchableOpacity 
+            style={styles.editAvatarButton}
+            onPress={() => navigation.navigate('EditProfile')}
+          >
+            <Edit2 size={16} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+        
+        <Text style={styles.name}>{userProfile?.full_name || 'Usuário'}</Text>
+        <Text style={styles.email}>{userProfile?.email || 'email@exemplo.com'}</Text>
+        
+        <View style={styles.roleBadge}>
+          <Text style={styles.roleText}>
+            {userProfile?.role === 'admin' ? 'Administrador' : 'Cidadão'}
+          </Text>
+        </View>
       </View>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.profileCard}>
-            <View style={styles.profileInfo}>
-                <View style={styles.avatar}>
-                    {userProfile.avatar_url ? (
-                        <Image source={{ uri: userProfile.avatar_url }} style={styles.avatarImage} />
-                    ) : ( <User size={40} color="#9CA3AF" /> )}
-                </View>
-                <View style={styles.profileText}>
-                    <Text style={styles.userName}>{userProfile.full_name}</Text>
-                    <Text style={styles.userEmail}>{userProfile.email}</Text>
-                </View>
-                <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfile')}>
-                    <FilePenLine size={20} color="#64748B" />
-                </TouchableOpacity>
-            </View>
-            <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{achievementsCount}</Text>
-                    <Text style={styles.statLabel}>Conquistas</Text>
-                </View>
-                <View style={styles.statSeparator} />
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{rewardsCount}</Text>
-                    <Text style={styles.statLabel}>Recompensas</Text>
-                </View>
-                <View style={styles.statSeparator} />
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{userCoins}</Text>
-                    <Text style={styles.statLabel}>Moedas</Text>
-                </View>
-            </View>
-        </View>
 
-        <View style={styles.gamificationCard}>
-            <View style={styles.statBox}>
-                <Text style={styles.gamificationLabel}>NÍVEL</Text>
-                <View style={styles.statValueContainer}>
-                    <Star size={20} color="#F59E0B" />
-                    <Text style={styles.gamificationValue}>{userLevel}</Text>
-                </View>
-            </View>
-            <View style={styles.gamificationSeparator} />
-            <View style={styles.statBox}>
-                <Text style={styles.gamificationLabel}>XP</Text>
-                 <View style={styles.statValueContainer}>
-                    <Heart size={20} color="#EF4444" />
-                    <Text style={styles.gamificationValue}>{userXp}</Text>
-                </View>
-            </View>
-        </View>
+      {/* Menu de Opções */}
+      <View style={styles.menuContainer}>
+        <Text style={styles.sectionTitle}>Geral</Text>
+        
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <TouchableOpacity 
+              key={item.id} 
+              style={styles.menuItem} 
+              onPress={item.onPress}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: `${item.color}20` }]}>
+                <Icon size={22} color={item.color} />
+              </View>
+              <Text style={styles.menuLabel}>{item.label}</Text>
+              <ChevronRight size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
-        {/* --- MENU DE OPÇÕES CORRIGIDO --- */}
-        <View style={styles.menuContainer}>
-            <MenuItem icon={Settings} label="Configurações" onPress={() => navigation.navigate('Settings')} />
-            <MenuItem icon={Award} label="Minhas Conquistas" onPress={() => navigation.navigate('Achievements')} /> 
-            <MenuItem icon={Building} label="Meus Empreendimentos" onPress={() => navigation.navigate('Empreendimentos')} />
-            <MenuItem icon={HelpCircle} label="Ajuda e Suporte" onPress={() => navigation.navigate('Support')} />
-            <MenuItem icon={LogOut} label="Sair" onPress={handleLogout} />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      {/* Botão de Logout */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <LogOut size={20} color="#EF4444" />
+        <Text style={styles.logoutText}>Sair da Conta</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.versionText}>Versão 1.0.0</Text>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#F8FAFC',
-    marginBottom: 75,
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
   },
-  header: { 
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  contentContainer: {
+    paddingBottom: 40,
+  },
+  header: {
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-  },
-  headerTitle: { 
-    fontSize: 28, 
-    fontWeight: 'bold',
-    color: '#1E293B',
-  },
-  optionsButton: {
-    padding: 4,
-  },
-  scrollContent: { 
-    paddingHorizontal: 20, 
-    paddingBottom: 40 
-  },
-  profileCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 20,
+    paddingVertical: 32,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
     marginBottom: 24,
-    shadowColor: '#9CA3AF',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 5,
   },
-  profileInfo: {
-    flexDirection: 'row',
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  avatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: theme.colors.primaryBg,
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
+    borderWidth: 4,
+    borderColor: '#ECFDF5',
   },
-  avatar: { 
-    width: 64, 
-    height: 64, 
-    borderRadius: 32, 
-    backgroundColor: '#F1F5F9', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    marginRight: 16,
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-  },
-  avatarImage: { 
-    width: '100%', 
-    height: '100%', 
-    borderRadius: 32 
-  },
-  profileText: {
-    flex: 1,
-  },
-  userName: { 
-    fontSize: 20, 
+  avatarInitials: {
+    fontSize: 36,
     fontWeight: 'bold',
-    color: '#1E293B',
+    color: theme.colors.primary,
   },
-  userEmail: { 
-    color: '#64748B', 
-    marginTop: 2,
-    fontSize: 14,
-  },
-  editButton: {
+  editAvatarButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: theme.colors.primary,
     padding: 8,
-    backgroundColor: '#F1F5F9',
     borderRadius: 20,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
   },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    paddingTop: 16,
-  },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statValue: {
-    fontSize: 18,
+  name: {
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#334155',
+    color: '#111827',
+    marginBottom: 4,
   },
-  statLabel: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    marginTop: 4,
+  email: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 12,
   },
-  statSeparator: {
-    width: 1,
-    backgroundColor: '#F1F5F9',
+  roleBadge: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
   },
-  gamificationCard: { 
-    flexDirection: 'row', 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 16, 
-    padding: 20, 
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  statBox: { 
-    flex: 1, 
-    alignItems: 'center' 
-  },
-  gamificationLabel: { 
-    color: '#9CA3AF', 
-    fontWeight: '600', 
-    marginBottom: 8,
+  roleText: {
     fontSize: 12,
+    fontWeight: '600',
+    color: '#4B5563',
     textTransform: 'uppercase',
   },
-  statValueContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center' 
-  },
-  gamificationValue: { 
-    fontSize: 22, 
-    fontWeight: 'bold', 
-    color: '#334155', 
-    marginLeft: 8 
-  },
-  gamificationSeparator: { 
-    width: 1, 
-    backgroundColor: '#F1F5F9' 
-  },
   menuContainer: {
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    marginBottom: 12,
+    marginLeft: 8,
+    textTransform: 'uppercase',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
+    padding: 16,
     borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  menuItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
-  },
-  menuIconContainer: {
+  iconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F8FAFC',
-    justifyContent: 'center',
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 16,
   },
-  menuText: { 
-    flex: 1, 
-    fontSize: 16, 
-    color: '#334155',
+  menuLabel: {
+    flex: 1,
+    fontSize: 16,
     fontWeight: '500',
+    color: '#374151',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEE2E2',
+    marginHorizontal: 20,
+    marginTop: 24,
+    padding: 16,
+    borderRadius: 16,
+    gap: 8,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#EF4444',
+  },
+  versionText: {
+    textAlign: 'center',
+    color: '#D1D5DB',
+    fontSize: 12,
+    marginTop: 24,
   },
 });

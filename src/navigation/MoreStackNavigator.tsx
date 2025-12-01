@@ -1,51 +1,64 @@
-
-// Local: src/navigation/MoreStackNavigator.tsx (VERSÃO COM CASING CORRIGIDO)
-
-// Local: src/navigation/MoreStackNavigator.ts
-
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-
-// Telas da aba Mais
 import MoreTabScreen from '../screens/More/MoreTabScreen';
 import PlaceholderScreen from '../screens/More/PlaceholderScreen';
+import AchievementsScreen from '../screens/Profile/AchievementsScreen';
+import { MoreStackParamList } from './types';
 
-
-// --- AQUI ESTÁ A CORREÇÃO ---
-// Garante que a importação usa o nome exato do arquivo: 'CourtSchedulingScreen'
-import CourtSchedulingScreen from '../screens/scheduling/CourtSchedulingScreen';
-
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<MoreStackParamList>();
 
 export default function MoreStackNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {/* Tela Principal */}
-      <Stack.Screen name="MoreTabHome" component={MoreTabScreen} />
+    <Stack.Navigator
+      initialRouteName="Menu"
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: '#F9FAFB' },
+      }}
+    >
+      {/* Tela Principal do Menu */}
+      <Stack.Screen name="Menu" component={MoreTabScreen} />
 
+      {/* Tela de Conquistas (Acessível pelo menu Mais) */}
+      <Stack.Screen name="Achievements" component={AchievementsScreen} />
 
-      {/* --- ROTA ATUALIZADA --- */}
-      <Stack.Screen name="CourtScheduling" component={CourtSchedulingScreen} />
+      {/* --- Telas de Destino (usando o Placeholder por enquanto) --- */}
+      
+      {/* O erro estava provavelmente aqui. Comentários JSX devem estar entre chaves. */}
+      
+      <Stack.Screen 
+        name="CommunityEvents" 
+        component={PlaceholderScreen} 
+        initialParams={{ title: 'Eventos da Comunidade' }} 
+      />
+      
+      <Stack.Screen 
+        name="MonitoringCameras" 
+        component={PlaceholderScreen} 
+        initialParams={{ title: 'Câmeras de Monitoramento' }} 
+      />
+      
+      <Stack.Screen 
+        name="RegionNews" 
+        component={PlaceholderScreen} 
+        initialParams={{ title: 'Notícias da Região' }} 
+      />
+      
+      <Stack.Screen 
+        name="Courses" 
+        component={PlaceholderScreen} 
+        initialParams={{ title: 'Cursos e Formações' }} 
+      />
+      
+      <Stack.Screen 
+        name="Support" 
+        component={PlaceholderScreen} 
+        initialParams={{ title: 'Contato Pós-venda' }} 
+      />
 
-      {/* As outras rotas continuam usando o Placeholder */}
-
-      {/* Telas de Destino (usando o Placeholder) */
-      <Stack.Screen name="CommunityEvents" component={PlaceholderScreen} initialParams={{ screenName: 'Eventos da Comunidade' }} />
-      <Stack.Screen name="MonitoringCameras" component={PlaceholderScreen} initialParams={{ screenName: 'Câmeras de Monitoramento' }} />
-      <Stack.Screen name="RegionNews" component={PlaceholderScreen} initialParams={{ screenName: 'Notícias da Região' }} />
-      <Stack.Screen name="Courses" component={PlaceholderScreen} initialParams={{ screenName: 'Cursos e Formações' }} />
-      <Stack.Screen name="Support" component={PlaceholderScreen} initialParams={{ screenName: 'Contato Pós-venda' }} />
-
-
-      <Stack.Screen name="CourtScheduling" component={PlaceholderScreen} initialParams={{ screenName: 'Agendamento de Quadras' }} />
-      <Stack.Screen name="SustainableTips" component={PlaceholderScreen} initialParams={{ screenName: 'Dicas Sustentáveis' }} />
-      <Stack.Screen name="GarbageSeparation" component={PlaceholderScreen} initialParams={{ screenName: 'Separação de Lixo' }} />
-      <Stack.Screen name="WeatherForecast" component={PlaceholderScreen} initialParams={{ screenName: 'Previsão do Tempo' }} />
-      <Stack.Screen name="Emergency" component={PlaceholderScreen} initialParams={{ screenName: 'Emergência' }} />
-      <Stack.Screen name="FBZSpace" component={PlaceholderScreen} initialParams={{ screenName: 'Espaço FBZ' }} />
-      <Stack.Screen name="SpaceCapacity" component={PlaceholderScreen} initialParams={{ screenName: 'Lotação dos Espaços' }} />
-      <Stack.Screen name="IPTU" component={PlaceholderScreen} initialParams={{ screenName: 'IPTU' }} />
-      <Stack.Screen name="Feedback" component={PlaceholderScreen} initialParams={{ screenName: 'Enviar Feedback' }} />
+      {/* Rota genérica para outros casos */}
+      <Stack.Screen name="Placeholder" component={PlaceholderScreen} />
+      
     </Stack.Navigator>
   );
 }

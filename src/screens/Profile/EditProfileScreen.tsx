@@ -1,236 +1,359 @@
-// src/screens/Profile/EditProfileScreen.tsx
-
 import React, { useState, useEffect } from 'react';
 import { 
-    View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, 
-    TextInput, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform 
+  View, 
+  Text, 
+  StyleSheet, 
+  TextInput, 
+  TouchableOpacity, 
+  Alert, 
+  ActivityIndicator, 
+  Image,
+  ScrollView,
+  Platform,
+  KeyboardAvoidingView
 } from 'react-native';
-import { ArrowLeft, Edit2, ShieldAlert, Trash2 } from 'lucide-react-native';
-import { useUserStore } from '../../hooks/useUserStore';
-import { supabase } from '../../lib/supabase';
+import { useNavigation } from '@react-navigation/native';
+import { ArrowLeft, Camera, Save, Mail, User, Phone } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../../lib/supabase';
+import { useUserStore } from '../../hooks/useUserStore';
+import { theme } from '../../styles/designSystem';
 
-export default function EditProfileScreen({ navigation }) {
-  const { userProfile, updateUserProfile, clearStore } = useUserStore();
+export default function EditProfileScreen() {
+  const navigation = useNavigation();
+  const { userProfile, setUserProfile, session } = useUserStore();
   
-  const [fullName, setFullName] = useState(userProfile?.full_name || '');
-  const [phone, setPhone] = useState(userProfile?.phone || '');
-  const [loading, setLoading] = useState(false);
-  const [avatarUri, setAvatarUri] = useState<string | null>(userProfile?.avatar_url || null);
+  const [name, setName] = useState(userProfile?.full_name || '');
+  const [phone, setPhone] = useState(''); // Adicione o campo 'phone' ao seu perfil no Supabase se ainda não existir
+  const [avatarUrl, setAvatarUrl] = useState(userProfile?.avatar_url || null);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const AVATAR_STORAGE_KEY = `@local_avatar_uri_${userProfile?.id}`;
-
+  // Carrega dados iniciais
   useEffect(() => {
-    const loadStoredAvatar = async () => {
-        const storedUri = await AsyncStorage.getItem(AVATAR_STORAGE_KEY);
-        if (storedUri) {
-            setAvatarUri(storedUri);
-        }
-    };
-    loadStoredAvatar();
-  }, []);
-
-  const handlePickAvatar = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert("Permissão Necessária", "Você precisa de permitir o acesso à galeria para alterar a sua foto.");
-      return;
+    if (userProfile) {
+      setName(userProfile.full_name || '');
+      // Se tiver campo de telefone no perfil, carregue-o aqui:
+      // setPhone(userProfile.phone || ''); 
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
+  }, [userProfile]);
 
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      setAvatarUri(uri);
-      await AsyncStorage.setItem(AVATAR_STORAGE_KEY, uri);
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        // Se tiver base64, podemos usar para upload direto ou mostrar preview
+        uploadAvatar(asset);
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível selecionar a imagem.');
     }
   };
 
-  const handleUpdateProfile = async () => {
-    setLoading(true);
-    const updates = { id: userProfile.id, full_name: fullName, phone, updated_at: new Date() };
-    const { error } = await supabase.from('profiles').upsert(updates);
-    
-    if (error) {
-      Alert.alert('Erro', 'Não foi possível atualizar as informações do perfil.');
-    } else {
-      updateUserProfile({ full_name: fullName, phone, avatar_url: avatarUri });
-      Alert.alert('Sucesso!', 'Seu perfil foi atualizado.');
-      navigation.goBack();
+  const uploadAvatar = async (imageAsset: ImagePicker.ImagePickerAsset) => {
+    if (!session?.user) return;
+    setUploading(true);
+
+    try {
+      // 1. Prepara o arquivo (Transforma URI em ArrayBuffer se necessário ou usa base64)
+      const arrayBuffer = await fetch(imageAsset.uri).then(res => res.arrayBuffer());
+      const fileExt = imageAsset.uri.split('.').pop()?.toLowerCase() || 'jpeg';
+      const fileName = `${session.user.id}/${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // 2. Upload para o Supabase Storage (Bucket 'avatars')
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, arrayBuffer, {
+          contentType: imageAsset.mimeType || 'image/jpeg',
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // 3. Obter URL pública
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      setAvatarUrl(data.publicUrl);
+
+    } catch (error: any) {
+      console.log('Erro no upload:', error);
+      // Fallback: Apenas mostra a imagem localmente se o upload falhar (ex: bucket não existe)
+      setAvatarUrl(imageAsset.uri);
+      // Alert.alert('Aviso', 'Não foi possível salvar a imagem no servidor, mas ela será usada localmente.');
+    } finally {
+      setUploading(false);
     }
-    setLoading(false);
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      "Excluir Conta Permanentemente",
-      "Tem a certeza de que deseja excluir a sua conta? Esta ação é irreversível e todos os seus dados, pontos e conquistas serão perdidos.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Sim, Excluir", 
-          style: "destructive", 
-          onPress: async () => {
-            const { error } = await supabase.functions.invoke('delete-user');
-            if (error) {
-                Alert.alert("Erro", "Não foi possível excluir a sua conta. Por favor, tente novamente ou contacte o suporte.");
-            } else {
-                await supabase.auth.signOut();
-                clearStore();
-                // O AppRouter irá redirecionar para a tela de login.
-            }
-          }
-        }
-      ]
-    );
+  const handleSave = async () => {
+    if (!session?.user) return;
+    setSaving(true);
+
+    try {
+      const updates = {
+        id: session.user.id,
+        full_name: name,
+        avatar_url: avatarUrl,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(updates);
+
+      if (error) throw error;
+
+      // Atualiza o store localmente para refletir a mudança instantaneamente
+      if (userProfile) {
+        setUserProfile({ ...userProfile, ...updates });
+      }
+
+      Alert.alert('Sucesso', 'Perfil atualizado com sucesso!', [
+        { text: 'OK', onPress: () => navigation.goBack() }
+      ]);
+
+    } catch (error: any) {
+      Alert.alert('Erro', error.message || 'Erro ao atualizar perfil.');
+    } finally {
+      setSaving(false);
+    }
   };
-  
+
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
-      >
-        <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                <ArrowLeft size={24} color="#1E293B" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Editar Perfil</Text>
-            <View style={{width: 40}} />
-        </View>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <ArrowLeft size={24} color={theme.colors.text.primary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Editar Perfil</Text>
+        <View style={{ width: 24 }} /> 
+      </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-            <View style={styles.avatarSection}>
-                <TouchableOpacity onPress={handlePickAvatar}>
-                    <Image 
-                        source={{ uri: avatarUri || 'https://placehold.co/200' }} 
-                        style={styles.avatar} 
-                    />
-                    <View style={styles.cameraIcon}>
-                        <Edit2 size={14} color="white" />
-                    </View>
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.form}>
-                <Text style={styles.label}>Nome Completo</Text>
-                <TextInput style={styles.input} value={fullName} onChangeText={setFullName} />
-                
-                <Text style={styles.label}>Email</Text>
-                <TextInput style={styles.input} value={userProfile?.email} editable={false} selectTextOnFocus={false} />
-
-                <Text style={styles.label}>Telefone</Text>
-                <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="(00) 00000-0000" />
-            </View>
-
-             <View style={styles.footer}>
-            <TouchableOpacity style={styles.saveButton} onPress={handleUpdateProfile} disabled={loading}>
-                {loading ? <ActivityIndicator color="white" /> : <Text style={styles.saveButtonText}>Salvar Alterações</Text>}
-            </TouchableOpacity>
-        </View>
-
-            <View style={styles.dangerZone}>
-                <View style={styles.dangerHeader}>
+      <ScrollView contentContainerStyle={styles.content}>
+        
+        {/* Seção de Avatar */}
+        <View style={styles.avatarSection}>
+          <TouchableOpacity onPress={pickImage} disabled={uploading}>
+            <View style={styles.avatarContainer}>
+              {uploading ? (
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+              ) : avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                  <Text style={styles.initials}>
+                    {name ? name.substring(0, 2).toUpperCase() : 'US'}
+                  </Text>
                 </View>
-                <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount}>
-                    <Trash2 size={20} color="#DC2626" />
-                    <Text style={styles.deleteButtonText}>Excluir minha conta</Text>
-                </TouchableOpacity>
-                 <Text style={styles.dangerDescription}>Esta ação é permanente e não pode ser desfeita.</Text>
+              )}
+              <View style={styles.cameraButton}>
+                <Camera size={20} color="#FFF" />
+              </View>
             </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </TouchableOpacity>
+          <Text style={styles.changePhotoText}>Toque para alterar a foto</Text>
+        </View>
+
+        {/* Formulário */}
+        <View style={styles.form}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Nome Completo</Text>
+            <View style={styles.inputContainer}>
+              <User size={20} color={theme.colors.text.tertiary} />
+              <TextInput
+                style={styles.input}
+                value={name}
+                onChangeText={setName}
+                placeholder="Seu nome"
+                autoCapitalize="words"
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+            <View style={[styles.inputContainer, styles.disabledInput]}>
+              <Mail size={20} color={theme.colors.text.tertiary} />
+              <TextInput
+                style={[styles.input, { color: theme.colors.text.tertiary }]}
+                value={userProfile?.email}
+                editable={false}
+              />
+            </View>
+            <Text style={styles.helperText}>O email não pode ser alterado.</Text>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Telemóvel (Opcional)</Text>
+            <View style={styles.inputContainer}>
+              <Phone size={20} color={theme.colors.text.tertiary} />
+              <TextInput
+                style={styles.input}
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="(00) 00000-0000"
+                keyboardType="phone-pad"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Botão Salvar */}
+        <TouchableOpacity 
+          style={styles.saveButton} 
+          onPress={handleSave}
+          disabled={saving || uploading}
+        >
+          {saving ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <>
+              <Save size={20} color="#FFF" />
+              <Text style={styles.saveButtonText}>Salvar Alterações</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', marginBottom: 85 },
-  keyboardView: { flex: 1 },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    paddingHorizontal: 16, 
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    backgroundColor: 'white'
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
   },
-  headerTitle: { fontSize: 20, fontWeight: 'bold' },
-  backButton: { padding: 8 },
-  scrollContainer: { paddingHorizontal: 24, paddingBottom: 40, paddingTop: 32 },
-  avatarSection: { alignItems: 'center', marginBottom: 32 },
-  avatar: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#E2E8F0', borderWidth: 3, borderColor: 'white' },
-  cameraIcon: { position: 'absolute', bottom: 5, right: 5, backgroundColor: '#4F46E5', padding: 10, borderRadius: 20, borderWidth: 2, borderColor: 'white' },
-  form: { width: '100%' },
-  label: { fontSize: 14, fontWeight: '500', color: '#334155', marginBottom: 8 },
-  input: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    height: 50,
-    fontSize: 16,
-    paddingHorizontal: 16,
-    color: '#1E293B',
-    marginBottom: 24,
-  },
-  dangerZone: {
-    marginTop: 40,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    paddingTop: 24,
-  },
-  dangerHeader: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
-  dangerTitle: {
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#B91C1C',
-    marginLeft: 8,
+    color: theme.colors.text.primary,
   },
-  dangerDescription: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    textAlign: 'center',
-    marginTop: 8,
-    bottom: 55,
+  content: {
+    padding: 24,
   },
-  deleteButton: {
+  avatarSection: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+  avatarPlaceholder: {
+    backgroundColor: theme.colors.primaryBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+  },
+  initials: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+  },
+  cameraButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: theme.colors.primary,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+  },
+  changePhotoText: {
+    marginTop: 12,
+    color: theme.colors.primary,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  form: {
+    gap: 20,
+  },
+  inputGroup: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.text.secondary,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 16,
+    height: 52,
+    gap: 12,
+  },
+  disabledInput: {
+    backgroundColor: '#F3F4F6',
+    borderColor: 'transparent',
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: theme.colors.text.primary,
+  },
+  helperText: {
+    fontSize: 12,
+    color: theme.colors.text.tertiary,
+    marginTop: 4,
+  },
+  saveButton: {
+    backgroundColor: theme.colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    bottom: 65,
+    height: 56,
+    borderRadius: 16,
+    marginTop: 40,
+    gap: 8,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  deleteButtonText: {
-    color: '#DC2626',
+  saveButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontWeight: 'bold',
   },
-  footer: { 
-    padding: 16, 
-    paddingBottom: Platform.OS === 'ios' ? 24 : 16, // Espaçamento seguro para iOS
-    backgroundColor: 'white',
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  saveButton: { 
-    backgroundColor: '#4F46E5', 
-    paddingVertical: 16, 
-    borderRadius: 12, 
-    alignItems: 'center', 
-    minHeight: 54, 
-    justifyContent: 'center' 
-  },
-  saveButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
 });

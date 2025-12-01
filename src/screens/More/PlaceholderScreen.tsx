@@ -1,57 +1,129 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, Construction } from 'lucide-react-native';
+import { theme } from '../../styles/designSystem';
 
-export default function PlaceholderScreen({ route, navigation }) {
-  // Pega o nome da tela dos parâmetros ou usa um nome padrão
-  const { screenName } = route.params || { screenName: 'Tela' };
+export default function PlaceholderScreen() {
+  const navigation = useNavigation();
+  const route = useRoute<any>();
   
+  // Obtém o título passado via parâmetros de navegação ou usa um padrão
+  const title = route.params?.title || route.params?.screenName || 'Em Construção';
+
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-         <Ionicons name="arrow-back" size={24} color="#3B82F6" />
-         <Text style={styles.backButtonText}>Voltar</Text>
-      </TouchableOpacity>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <ArrowLeft size={24} color={theme.colors.text.primary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{title}</Text>
+        <View style={{ width: 24 }} /> 
+      </View>
+
       <View style={styles.content}>
-        <Text style={styles.text}>{screenName}</Text>
-        <Text style={styles.subtext}>Em Construção</Text>
+        <View style={styles.iconContainer}>
+          <Construction size={64} color={theme.colors.primary} />
+        </View>
+        <Text style={styles.title}>Em Breve!</Text>
+        <Text style={styles.message}>
+          Estamos trabalhando duro para trazer a funcionalidade de <Text style={styles.highlight}>{title}</Text> para você.
+        </Text>
+        <Text style={styles.subMessage}>
+          Verifique novamente nas próximas atualizações do aplicativo.
+        </Text>
+
+        <TouchableOpacity 
+          style={styles.button}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.buttonText}>Voltar</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#F8F9FA',
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
   },
-  content: { 
-    flex: 1, 
-    justifyContent: 'center', 
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
-  text: { 
-    fontSize: 22, 
-    fontWeight: 'bold', 
-    color: '#343a40',
+  backButton: {
+    padding: 8,
   },
-  subtext: { 
-    fontSize: 16, 
-    color: '#6B7280', 
-    marginTop: 8,
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: 'center',
   },
-  backButton: { 
-    position: 'absolute', 
-    top: 55, // Ajustado para SafeAreaView
-    left: 20, 
-    flexDirection: 'row', 
+  content: {
+    flex: 1,
     alignItems: 'center',
-    zIndex: 10,
+    justifyContent: 'center',
+    padding: 32,
   },
-  backButtonText: { 
-    color: '#3B82F6', 
-    fontSize: 16, 
-    marginLeft: 5,
+  iconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: theme.colors.primaryBg, // Verde claro
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    marginBottom: 12,
+  },
+  message: {
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  highlight: {
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+  },
+  subMessage: {
+    fontSize: 14,
+    color: theme.colors.text.tertiary,
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  buttonText: {
+    fontSize: 16,
     fontWeight: '600',
+    color: theme.colors.text.primary,
   },
 });

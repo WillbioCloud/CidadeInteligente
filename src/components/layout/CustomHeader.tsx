@@ -1,58 +1,60 @@
-// src/components/layout/CustomHeader.tsx
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Image } from 'react-native';
-import { Bell, User, Award, Star } from '../Icons';
+import { useNavigation } from '@react-navigation/native';
+import { Bell, User, Award, Star } from 'lucide-react-native'; // Usando Lucide direto para consistência
 import { useUserStore } from '../../hooks/useUserStore';
-import { useModals } from '../../context/ModalContext';
 import { supabase } from '../../lib/supabase';
+import { theme } from '../../styles/designSystem';
 
 interface CustomHeaderProps {
-  onNotificationsPress: () => void;
+  onNotificationsPress?: () => void;
 }
 
 export default function CustomHeader({ onNotificationsPress }: CustomHeaderProps) {
+  const navigation = useNavigation<any>();
   const { userProfile } = useUserStore();
-  const { showProfile } = useModals();
   const [hasUnread, setHasUnread] = useState(false);
 
-  const firstName = userProfile?.full_name?.split(' ')[0] || 'Usuário';
-  const displayedAchievements = userProfile?.displayed_achievements || [];
-  const userLevel = userProfile?.level || 1;
+  const firstName = userProfile?.full_name?.split(' ')[0] || 'Vizinho';
   const avatarUrl = userProfile?.avatar_url;
+  
+  // Cálculo simples de nível (ou pegar do banco se existir)
+  // Se não houver campo 'points', assume 0
+  const points = (userProfile as any)?.points || 0;
+  const userLevel = Math.floor(points / 100) + 1;
+
+  // Mock de conquistas para exibição (ou pegar do perfil)
+  const displayedAchievements = ['Pioneiro', 'Verificado']; 
 
   useEffect(() => {
     if (!userProfile?.id) return;
 
-    // Função para verificar notificações não lidas
-    const checkUnreadNotifications = async () => {
-      const { data, error } = await supabase
+    // 1. Verificar notificações iniciais
+    const checkUnread = async () => {
+      const { count } = await supabase
         .from('notifications')
-        .select('id')
-        .or(`user_id.eq.${userProfile.id},user_id.is.null`)
-        .eq('is_read', false)
-        .limit(1);
-
-      if (error) {
-        console.error("Erro ao verificar notificações:", error);
-        return;
-      }
-      setHasUnread(data && data.length > 0);
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userProfile.id)
+        .eq('is_read', false);
+      
+      if (count && count > 0) setHasUnread(true);
     };
 
-    checkUnreadNotifications();
+    checkUnread();
 
-    // Ouvinte em tempo real para novas notificações
+    // 2. Ouvir novas notificações em tempo real
     const subscription = supabase
-      .channel('public:notifications')
+      .channel('header_notifications')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications' },
-        (payload) => {
-          // Se a nova notificação for para este utilizador ou para todos, marca como não lida
-          if (payload.new.user_id === userProfile.id || payload.new.user_id === null) {
-            setHasUnread(true);
-          }
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'notifications',
+          filter: `user_id=eq.${userProfile.id}`
+        },
+        () => {
+          setHasUnread(true);
         }
       )
       .subscribe();
@@ -62,71 +64,56 @@ export default function CustomHeader({ onNotificationsPress }: CustomHeaderProps
     };
   }, [userProfile?.id]);
 
-// src/components/layout/CustomHeader.tsx (VERSÃO COM TAGS MENORES E NÍVEL)
+  const handleProfilePress = () => {
+    // Navega para a aba de Conta
+    navigation.navigate('Conta');
+  };
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { Bell, User, Award, Star } from '../Icons'; // Importamos o Star de volta
-import { useUserStore } from '../../hooks/useUserStore';
-import { useModals } from '../../context/ModalContext';
-
-export default function CustomHeader() {
-  const { userProfile } = useUserStore();
-  const { showProfile, showNotifications } = useModals();
-
-  const firstName = userProfile?.full_name?.split(' ')[0] || 'Usuário';
-  const displayedAchievements = userProfile?.displayed_achievements || [];
-  const userLevel = userProfile?.level || 1; // Pega o nível do usuário
   return (
     <View style={styles.headerContainer}>
       <View style={styles.content}>
-        <TouchableOpacity style={styles.avatarContainer} onPress={showProfile}>
+        {/* Avatar */}
+        <TouchableOpacity style={styles.avatarContainer} onPress={handleProfilePress}>
           {avatarUrl ? (
             <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
           ) : (
             <View style={styles.avatarPlaceholder}>
-              <User size={24} color="#4A90E2" />
+              <User size={20} color={theme.colors.primary} />
             </View>
           )}
+        </TouchableOpacity>
 
-          <View style={styles.avatarPlaceholder}>
-            <User size={24} color="#4A90E2" />
-          </View>        </TouchableOpacity>
-
+        {/* Info do Utilizador */}
         <View style={styles.userInfoContainer}>
           <View style={styles.userRow}>
             <Text style={styles.greetingText}>Olá, {firstName}!</Text>
-            {/* Exibe a estrela com o nível */}            <View style={styles.levelContainer}>
-              <Star size={14} color="#F5A623" />
+            <View style={styles.levelBadge}>
+              <Star size={10} color="#F59E0B" fill="#F59E0B" />
               <Text style={styles.levelText}>{userLevel}</Text>
             </View>
           </View>
 
           <View style={styles.achievementsContainer}>
-            {displayedAchievements.length > 0 ? (
-              displayedAchievements.map((ach, index) => (
-                <View key={index} style={styles.achievementTag}>
-                  <Award size={10} color="#4338CA" />
-                  <Text style={styles.achievementText}>{ach}</Text>
-                </View>
-              ))
-            ) : (
-              <Text style={styles.loteamentoText}>Selecione as suas conquistas</Text>
-
-              <Text style={styles.loteamentoText}>Selecione suas conquistas</Text>            )}
+            {displayedAchievements.map((ach, index) => (
+              <View key={index} style={styles.achievementTag}>
+                <Award size={10} color={theme.colors.primary} />
+                <Text style={styles.achievementText}>{ach}</Text>
+              </View>
+            ))}
           </View>
         </View>
 
-        <TouchableOpacity style={styles.notificationButton} onPress={() => {
-          onNotificationsPress();
-          setHasUnread(false); // Otimisticamente marca como lido ao abrir
-        }}>
-          <Bell size={24} color="#333" />
+        {/* Botão de Notificações */}
+        <TouchableOpacity 
+          style={styles.notificationButton} 
+          onPress={() => {
+            setHasUnread(false);
+            if (onNotificationsPress) onNotificationsPress();
+          }}
+        >
+          <Bell size={24} color={theme.colors.text.primary} />
           {hasUnread && <View style={styles.notificationDot} />}
-
-        <TouchableOpacity style={styles.notificationButton} onPress={showNotifications}>
-          <Bell size={24} color="#333" />
-          <View style={styles.notificationDot} />        </TouchableOpacity>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -136,15 +123,16 @@ const styles = StyleSheet.create({
   headerContainer: {
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+    borderBottomColor: '#F3F4F6',
+    paddingTop: Platform.OS === 'ios' ? 50 : 10, // Ajuste de Safe Area
   },
   content: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    height: 60,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    height: 70,
   },
   avatarContainer: {
     marginRight: 12,
@@ -153,51 +141,88 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#EBF2FC',
+    backgroundColor: theme.colors.primaryBg,
     justifyContent: 'center',
     alignItems: 'center',
-                          <TouchableOpacity style={styles.notificationButton} onPress={() => {
-                            onNotificationsPress();
-                            setHasUnread(false); // Otimisticamente marca como lido ao abrir
-                          }}>
-                            <Bell size={24} color="#333" />
-                            {hasUnread && <View style={styles.notificationDot} />}
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    );
-                  }
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  avatarImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+  },
+  userInfoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  userRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
-
-    marginTop: 2, // Reduzi um pouco a margem superior  },
+    marginBottom: 4,
+  },
+  greetingText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    marginRight: 8,
+  },
+  levelBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    gap: 2,
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+  },
+  levelText: {
+    fontSize: 10,
+    color: '#B45309',
+    fontWeight: 'bold',
+  },
+  achievementsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   achievementTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EEF2FF',
-    borderRadius: 10,
+    backgroundColor: '#ECFDF5',
+    borderRadius: 8,
     paddingHorizontal: 6,
-    paddingVertical: 3,
-    marginRight: 4,
+    paddingVertical: 2,
+    marginRight: 6,
+    gap: 4,
   },
   achievementText: {
-    color: '#4338CA',
+    color: theme.colors.primaryDark,
     fontSize: 10,
     fontWeight: '600',
-    marginLeft: 3,
   },
-});
-
-    borderRadius: 10, // Arredondamento menor
-    paddingHorizontal: 6, // Padding menor
-    paddingVertical: 3,   // Padding menor
-    marginRight: 4,     // Margem menor
+  notificationButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
   },
-  achievementText: {
-    color: '#4338CA',
-    fontSize: 10,     // Fonte menor
-    fontWeight: '600',
-    marginLeft: 3,    // Espaço menor para o ícone
+  notificationDot: {
+    position: 'absolute',
+    top: 8,
+    right: 2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#EF4444',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
 });

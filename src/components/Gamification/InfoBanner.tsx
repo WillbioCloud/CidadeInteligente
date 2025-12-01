@@ -1,44 +1,80 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { Lightbulb, X } from 'lucide-react-native';
+import { theme } from '../../styles/designSystem';
+
+// Habilita animações no Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function InfoBanner() {
+  const [isVisible, setIsVisible] = useState(true);
+
+  if (!isVisible) return null;
+
+  const handleClose = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsVisible(false);
+  };
+
   return (
-    <View style={styles.bannerContainer}>
-      <Ionicons name="information-circle-outline" size={24} color="#0284C7" />
-      <Text style={styles.bannerText}>
-        Complete 3 missões diárias para manter sua sequência e ganhar pontos extras!
-      </Text>
+    <View style={styles.container}>
+      <View style={styles.iconContainer}>
+        {/* Ícone de lâmpada preenchido com a cor primária */}
+        <Lightbulb size={24} color={theme.colors.primary} fill={theme.colors.primary} />
+      </View>
+      
+      <View style={styles.content}>
+        <Text style={styles.title}>Dica do Dia</Text>
+        <Text style={styles.text}>
+          Complete todas as missões diárias para ganhar um bônus especial de 50 XP!
+        </Text>
+      </View>
+
+      <TouchableOpacity 
+        onPress={handleClose} 
+        style={styles.closeButton}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <X size={20} color={theme.colors.text.tertiary} />
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  bannerContainer: {
+  container: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E0F2FE', // Azul claro
-    borderRadius: 12,
+    backgroundColor: '#ECFDF5', // Verde muito claro (Primary Bg)
+    borderRadius: 16,
     padding: 16,
-    marginHorizontal: 16,
+    marginBottom: 24,
+    alignItems: 'flex-start',
     borderWidth: 1,
-    borderColor: '#BAE6FD',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
-    marginBottom: 16,
-    marginTop: 16,
-    maxWidth: '100%',
+    borderColor: '#D1FAE5', // Borda verde suave
   },
-  bannerText: {
+  iconContainer: {
+    marginRight: 12,
+    marginTop: 2,
+  },
+  content: {
     flex: 1,
-    marginLeft: 12,
+  },
+  title: {
     fontSize: 14,
-    color: '#0369A1', // Azul escuro
+    fontWeight: 'bold',
+    color: theme.colors.primaryDark,
+    marginBottom: 4,
+  },
+  text: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
     lineHeight: 20,
-    fontWeight: '500',
-    textAlign: 'left',
+  },
+  closeButton: {
+    padding: 4,
+    marginLeft: 8,
+    marginTop: -4, // Ajuste fino para alinhar com o topo
   },
 });

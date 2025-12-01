@@ -1,236 +1,236 @@
-// screens/More/MoreTabScreen.tsx (VERSÃO FINAL COM TIPAGEM CORRIGIDA)
-
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import {
-    Calendar, Camera, Heart, Star, MapPin, Clock, Bell, Plus, ChevronRight, Newspaper
-} from '../../components/Icons';
-// Importa o tipo de navegação que criamos para garantir a segurança dos tipos
-import { MoreNavigationProp, MoreStackParamList } from '../../navigation/types';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Calendar, Video, Newspaper, GraduationCap, LifeBuoy, Award, ChevronRight, ShieldAlert } from 'lucide-react-native';
+import { theme } from '../../styles/designSystem';
+import { MoreStackParamList } from '../../navigation/types';
 
-// Arrays com os dados das seções e ações rápidas
+// Tipagem da navegação para este ecrã
+type MoreScreenNavigationProp = StackNavigationProp<MoreStackParamList, 'Menu'>;
 
-// screens/More/MoreTabScreen.tsx (VERSÃO COMPLETA E CORRIGIDA)
+export default function MoreTabScreen() {
+  const navigation = useNavigation<MoreScreenNavigationProp>();
 
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { 
-    Calendar, Camera, Heart, Star, MapPin, Clock, Bell, Plus, ChevronRight, Newspaper 
-} from '../../components/Icons';
-// A linha "import CustomHeader" foi REMOVIDA daqui.
+  const menuItems = [
+    {
+      id: 'events',
+      label: 'Eventos',
+      description: 'Agenda da comunidade',
+      icon: Calendar,
+      color: '#8B5CF6', // Roxo
+      route: 'CommunityEvents',
+    },
+    {
+      id: 'cameras',
+      label: 'Câmeras',
+      description: 'Monitoramento ao vivo',
+      icon: Video,
+      color: '#EF4444', // Vermelho
+      route: 'MonitoringCameras',
+    },
+    {
+      id: 'news',
+      label: 'Notícias',
+      description: 'Atualizações da região',
+      icon: Newspaper,
+      color: '#3B82F6', // Azul
+      route: 'RegionNews',
+    },
+    {
+      id: 'courses',
+      label: 'Cursos',
+      description: 'Formação e workshops',
+      icon: GraduationCap,
+      color: '#F59E0B', // Laranja
+      route: 'Courses',
+    },
+    {
+      id: 'achievements',
+      label: 'Conquistas',
+      description: 'Seus prêmios e nível',
+      icon: Award,
+      color: '#10B981', // Verde
+      route: 'Achievements',
+    },
+    {
+      id: 'support',
+      label: 'Suporte',
+      description: 'Fale conosco',
+      icon: LifeBuoy,
+      color: theme.colors.text.secondary,
+      route: 'Support',
+    },
+  ];
 
-// Seus componentes 'sections' e 'quickActions' continuam os mesmosconst sections = [
-  {
-    title: 'Eventos & Comunidade',
-    items: [
-      { id: 'CommunityEvents', icon: Calendar, title: 'Eventos da Comunidade', description: 'Festas, workshops e atividades' },
-      { id: 'MonitoringCameras', icon: Camera, title: 'Câmeras de Monitoramento', description: 'Visualização das câmeras públicas' },
-      { id: 'RegionNews', icon: Newspaper, title: 'Notícias da Região', description: 'Últimas novidades do bairro' },
-    ]
-  },
-  {
-    title: 'Serviços & Suporte',
-    items: [
-      { id: 'Courses', icon: Star, title: 'Cursos e Formações', description: 'Escola do Futuro e capacitações' },
-      { id: 'Support', icon: Heart, title: 'Contato Pós-venda', description: 'Suporte e atendimento ao cliente' },
-      { id: 'CourtScheduling', icon: MapPin, title: 'Agendamento de Quadras', description: 'Reserve espaços esportivos' },
-    ]
-  },
-  {
-    title: 'Sustentabilidade',
-    items: [
-      { id: 'SustainableTips', icon: Plus, title: 'Dicas Sustentáveis', description: 'Como cuidar do seu lote e do planeta' },
-      { id: 'GarbageSeparation', icon: Bell, title: 'Separação de Lixo', description: 'Tutorial completo de reciclagem' },
-      { id: 'WeatherForecast', icon: Clock, title: 'Previsão do Tempo', description: 'Condições para atividades ao ar livre' },
-    ]
-  }
-];
-
-const quickActions = [
-    { id: 'Emergency', icon: '🚨', title: 'Emergência', color: '#EF4444' },
-    { id: 'FBZSpace', icon: '🏠', title: 'Espaço FBZ', color: '#3B82F6' },
-    { id: 'SpaceCapacity', icon: '📊', title: 'Lotação', color: '#10B981' },
-    { id: 'IPTU', icon: '🧾', title: 'IPTU', color: '#8B5CF6' }
-];
-
-// --- AQUI ESTÁ A CORREÇÃO PRINCIPAL ---
-// A prop 'navigation' agora tem o tipo 'MoreNavigationProp' que definimos
-export default function MoreTabScreen({ navigation }: { navigation: MoreNavigationProp }) {
-  // A função de navegação agora espera uma chave válida da nossa lista de tipos
-  const handleNavigation = (screenId: keyof MoreStackParamList, params?: any) => {
-    navigation.navigate(screenId, params);
+  const handlePanicButton = () => {
+    Alert.alert(
+      'Botão de Pânico',
+      'Deseja enviar um alerta de emergência para a segurança do condomínio?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'ENVIAR ALERTA', 
+          style: 'destructive', 
+          onPress: () => Alert.alert('Alerta Enviado', 'A segurança foi notificada e está a caminho.') 
+        }
+      ]
+    );
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-    >
-
-export default function MoreTabScreen({ navigation }) {
-  const handleNavigation = (screenId: string) => {
-    navigation.navigate(screenId);
-  };
-
-  return (
-    // AQUI ESTÁ A MUDANÇA:
-    // Trocamos SafeAreaView por ScrollView. O header e o espaçamento do topo
-    // são agora controlados pelo navegador, garantindo consistência.
-    <ScrollView 
-      style={styles.container} 
-      showsVerticalScrollIndicator={false} 
-      contentContainerStyle={styles.scrollContent}
-    >
-      {/* A linha <CustomHeader /> foi REMOVIDA */}      <View style={styles.header}>
-          <Text style={styles.title}>Mais Serviços</Text>
-          <Text style={styles.subtitle}>Explore todas as funcionalidades do app</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Mais Opções</Text>
+        <Text style={styles.headerSubtitle}>Serviços e utilidades do condomínio</Text>
       </View>
 
-      <View style={styles.quickActionsGrid}>
-          {quickActions.map((action) => (
-            <TouchableOpacity key={action.id} style={[styles.quickActionCard, { backgroundColor: action.color }]} onPress={() => handleNavigation(action.id as keyof MoreStackParamList)}>
-
-            <TouchableOpacity key={action.id} style={[styles.quickActionCard, { backgroundColor: action.color }]} onPress={() => handleNavigation(action.id)}>              <Text style={styles.quickActionIcon}>{action.icon}</Text>
-              <Text style={styles.quickActionTitle}>{action.title}</Text>
-            </TouchableOpacity>
-          ))}
-      </View>
-
-      {sections.map((section, sectionIndex) => (
-          <View key={sectionIndex} style={styles.section}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              {section.items.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                      <TouchableOpacity key={item.id} style={styles.menuItem} onPress={() => handleNavigation(item.id as keyof MoreStackParamList)}>
-
-                      <TouchableOpacity key={item.id} style={styles.menuItem} onPress={() => handleNavigation(item.id)}>                          <View style={styles.iconContainer}>
-                              <Icon size={22} color="#3B82F6"/>
-                          </View>
-                          <View style={styles.menuItemTextContainer}>
-                              <Text style={styles.menuItemTitle}>{item.title}</Text>
-                              <Text style={styles.menuItemDescription}>{item.description}</Text>
-                          </View>
-                          <ChevronRight size={20} color="#CBD5E1" />
-                      </TouchableOpacity>
-                  )
-              })}
+      <ScrollView contentContainerStyle={styles.content}>
+        
+        {/* Botão de Pânico (Destaque) */}
+        <TouchableOpacity 
+          style={styles.panicButton} 
+          onPress={handlePanicButton}
+          activeOpacity={0.8}
+        >
+          <View style={styles.panicIconContainer}>
+            <ShieldAlert size={24} color="#FFF" />
           </View>
-      ))}
+          <View style={styles.panicTextContainer}>
+            <Text style={styles.panicTitle}>Botão de Pânico</Text>
+            <Text style={styles.panicSubtitle}>Acione em caso de emergência</Text>
+          </View>
+          <ChevronRight size={20} color="#FECACA" />
+        </TouchableOpacity>
 
-      <View style={styles.feedbackCard}>
-          <Text style={styles.feedbackTitle}>💭 Sua Opinião Importa</Text>
-          <Text style={styles.feedbackDescription}>Ajude-nos a melhorar o app com seu feedback.</Text>
-          <TouchableOpacity style={styles.feedbackButton} onPress={() => handleNavigation('Feedback')}>
-              <Text style={styles.feedbackButtonText}>Enviar Feedback</Text>
-          </TouchableOpacity>
-      </View>
-    </ScrollView>
+        <Text style={styles.sectionTitle}>Serviços</Text>
+
+        <View style={styles.grid}>
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.card}
+                onPress={() => navigation.navigate(item.route as any)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.iconContainer, { backgroundColor: `${item.color}15` }]}>
+                  <Icon size={24} color={item.color} />
+                </View>
+                <Text style={styles.cardTitle}>{item.label}</Text>
+                <Text style={styles.cardDesc}>{item.description}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F5F7' },
-  scrollContent: { paddingBottom: 100 },
-  header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1F2937' },
-  subtitle: { fontSize: 16, color: '#6B7280', marginTop: 4 },
-  quickActionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 20,
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
   },
-  quickActionCard: {
-    width: '48%',
-    borderRadius: 16,
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+    marginTop: 4,
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  panicButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EF4444',
     padding: 16,
-    marginBottom: 12,
+    borderRadius: 16,
+    marginBottom: 24,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  panicIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 100,
+    marginRight: 16,
   },
-  quickActionIcon: {
-    fontSize: 28,
+  panicTextContainer: {
+    flex: 1,
   },
-  quickActionTitle: {
-    color: '#FFF',
-    fontSize: 15,
+  panicTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 8,
+    color: '#FFFFFF',
   },
-  section: {
-    marginBottom: 24,
+  panicSubtitle: {
+    fontSize: 14,
+    color: '#FEE2E2',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#111827',
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    color: theme.colors.text.primary,
+    marginBottom: 16,
   },
-  menuItem: {
+  grid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginHorizontal: 16,
-    borderRadius: 12,
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  card: {
+    width: '47%', // Aproximadamente metade menos o gap
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
     marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#F3F4F6'
   },
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#EFF6FF',
-    justifyContent: 'center',
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
-  menuItemTextContainer: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  menuItemTitle: {
+  cardTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  menuItemDescription: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  feedbackCard: {
-    backgroundColor: '#4A90E2',
-    marginHorizontal: 16,
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 10,
-  },
-  feedbackTitle: {
-    color: '#FFF',
-    fontSize: 18,
     fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    marginBottom: 4,
   },
-  feedbackDescription: {
-    color: '#E0E7FF',
-    marginTop: 5,
-    marginBottom: 15,
-  },
-  feedbackButton: {
-    backgroundColor: '#FFF',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  feedbackButtonText: {
-    color: '#4A90E2',
-    fontWeight: 'bold',
+  cardDesc: {
+    fontSize: 12,
+    color: theme.colors.text.tertiary,
+    lineHeight: 16,
   },
 });

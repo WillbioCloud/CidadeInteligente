@@ -1,160 +1,309 @@
-// src/screens/Comercios/layouts/ModernLayout.tsx (VERSÃO COM GALERIA EXPANSÍVEL)
+import React from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  Image, 
+  TouchableOpacity, 
+  Linking, 
+  Dimensions,
+  Platform
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { 
+  MapPin, 
+  Clock, 
+  Phone, 
+  Instagram, 
+  ArrowLeft, 
+  Star, 
+  Share2 
+} from 'lucide-react-native';
+import { theme } from '../../../styles/designSystem';
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, Image, TouchableOpacity, Linking } from 'react-native';
-import { ArrowLeft, Phone, Instagram, Star, MapPin, Clock, Heart, Share2 } from 'lucide-react-native';
-import ImageView from "react-native-image-viewing"; // 1. Importa a biblioteca
+const { width } = Dimensions.get('window');
 
-const InfoRow = ({ icon: Icon, text }) => (
-  <View style={styles.infoRow}>
-    <Icon size={20} color="#339949ff" />
-    <Text style={styles.infoText}>{text}</Text>
-  </View>
-);
+interface ModernLayoutProps {
+  commerce: any;
+  navigation: any;
+}
 
-export default function ModernLayout({ commerce, navigation }) {
-  // 2. Estados para controlar o modal da galeria
-  const [isGalleryVisible, setIsGalleryVisible] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+export default function ModernLayout({ commerce, navigation }: ModernLayoutProps) {
+  
+  const handleOpenWhatsapp = () => {
+    if (!commerce.contact?.whatsapp) return;
+    const cleanNumber = commerce.contact.whatsapp.replace(/\D/g, '');
+    const message = "Olá! Vi seu comércio no App Cidade Inteligente.";
+    Linking.openURL(`https://wa.me/55${cleanNumber}?text=${encodeURIComponent(message)}`);
+  };
 
-  // Formata as imagens para o formato que a biblioteca espera
-  const galleryImages = commerce.images.map(url => ({ uri: url }));
+  const handleOpenInstagram = () => {
+    if (!commerce.contact?.instagram) return;
+    // Remove o @ se o utilizador tiver colocado
+    const username = commerce.contact.instagram.replace('@', '');
+    Linking.openURL(`https://instagram.com/${username}`);
+  };
 
-  const openGallery = (index: number) => {
-    setCurrentImageIndex(index);
-    setIsGalleryVisible(true);
+  const handleShare = () => {
+    // Lógica futura de partilha
+    alert('Funcionalidade de partilhar em breve!');
   };
 
   return (
-    <>
-      <SafeAreaView style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.headerImageContainer}>
-            <Image source={{ uri: commerce.coverImage }} style={styles.headerImage} />
-            <View style={styles.headerOverlay}>
-              <View style={styles.headerControls}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-                  <ArrowLeft size={24} color="#fff" />
-                </TouchableOpacity>
-                <View style={{ flexDirection: 'row' }}>
-                  <TouchableOpacity style={styles.iconButton}><Heart size={24} color="#fff" /></TouchableOpacity>
-                  <TouchableOpacity style={styles.iconButton}><Share2 size={24} color="#fff" /></TouchableOpacity>
-                </View>
-              </View>
-              <View style={styles.titleBox}>
-                <Text style={styles.name}>{commerce.name}</Text>
-                <View style={styles.titleInfoRow}>
-                  <Star size={16} color="#F59E0B" />
-                  <Text style={styles.rating}>{commerce.rating}</Text>
-                  <View style={styles.categoryBadge}><Text style={styles.categoryBadgeText}>{commerce.category}</Text></View>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.actionsContainer}>
-            <TouchableOpacity
-              style={styles.buttonPrimary}
-              onPress={() => Linking.openURL(`tel:${commerce.contact.whatsapp}`)}
-            >
-              <Phone size={16} color="white" />
-              <Text style={styles.buttonPrimaryText}>Ligar Agora</Text>
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* Header com Imagem e Gradiente */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={commerce.coverImage ? { uri: commerce.coverImage } : { uri: 'https://via.placeholder.com/800x600' }} 
+            style={styles.coverImage} 
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.8)']}
+            style={styles.imageGradient}
+          />
+          
+          {/* Botões de Navegação no Header */}
+          <View style={styles.headerButtons}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+              <ArrowLeft color="#FFF" size={24} />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.buttonSecondary}
-              onPress={() => Linking.openURL(`https://instagram.com/${commerce.contact.instagram.replace('@', '')}`)}
-            >
-              <Instagram size={16} color="#374151" />
-              <Text style={styles.buttonSecondaryText}>Instagram</Text>
+            <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
+              <Share2 color="#FFF" size={24} />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.content}>
-            {commerce.images && commerce.images.length > 0 &&
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Galeria</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {commerce.images.map((imgUrl, index) => (
-                    // 3. Cada imagem agora é clicável
-                    <TouchableOpacity key={index} onPress={() => openGallery(index)}>
-                      <Image source={{ uri: imgUrl }} style={styles.galleryImage} />
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            }
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Informações</Text>
-              <InfoRow icon={MapPin} text={`${commerce.loteamento_id.replace('_', ' ')}, ${commerce.city}`} />
-              <InfoRow icon={Clock} text={commerce.openingHours} />
-              <InfoRow icon={Phone} text={commerce.contact.whatsapp} />
+          {/* Informações Sobrepostas na Imagem */}
+          <View style={styles.headerInfo}>
+            <View style={styles.categoryBadge}>
+              <Text style={styles.categoryText}>{commerce.category}</Text>
             </View>
-
-            {commerce.services && commerce.services.length > 0 &&
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Serviços</Text>
-                <View style={styles.servicesContainer}>
-                  {commerce.services.map((service, index) => (
-                    <View key={index} style={styles.serviceTag}><Text style={styles.serviceTagText}>{service}</Text></View>
-                  ))}
-                </View>
-              </View>
-            }
-            
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Sobre</Text>
-              <Text style={styles.description}>{commerce.description}</Text>
+            <Text style={styles.title}>{commerce.name}</Text>
+            <View style={styles.ratingRow}>
+              <Star fill="#FBBF24" color="#FBBF24" size={16} />
+              <Text style={styles.ratingText}>{commerce.rating} (Excelente)</Text>
             </View>
           </View>
-        </ScrollView>
-      </SafeAreaView>
+        </View>
 
-      {/* 4. O componente do visualizador de imagens */}
-      <ImageView
-        images={galleryImages}
-        imageIndex={currentImageIndex}
-        visible={isGalleryVisible}
-        onRequestClose={() => setIsGalleryVisible(false)}
-        FooterComponent={({ imageIndex }) => (
-            <View style={styles.footer}>
-                <Text style={styles.footerText}>{`${imageIndex + 1} / ${galleryImages.length}`}</Text>
+        {/* Conteúdo Principal */}
+        <View style={styles.content}>
+          {/* Status e Horário */}
+          <View style={styles.statusCard}>
+            <Clock color={theme.colors.primary} size={20} />
+            <View style={{ marginLeft: 12 }}>
+              <Text style={styles.statusTitle}>Horário de Funcionamento</Text>
+              <Text style={styles.statusText}>{commerce.openingHours}</Text>
             </View>
+          </View>
+
+          {/* Descrição */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Sobre</Text>
+            <Text style={styles.description}>{commerce.description || "Sem descrição disponível."}</Text>
+          </View>
+
+          {/* Localização */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Localização</Text>
+            <View style={styles.locationRow}>
+              <MapPin color={theme.colors.text.secondary} size={18} />
+              <Text style={styles.locationText}>{commerce.city}</Text>
+            </View>
+          </View>
+
+          {/* Galeria (Exemplo Simples) */}
+          {commerce.images && commerce.images.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Galeria</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {commerce.images.map((img: string, index: number) => (
+                  <Image key={index} source={{ uri: img }} style={styles.galleryImage} />
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Barra de Ações Fixa no Rodapé */}
+      <View style={styles.footer}>
+        {commerce.contact?.instagram && (
+          <TouchableOpacity style={[styles.actionButton, styles.instaButton]} onPress={handleOpenInstagram}>
+            <Instagram color={theme.colors.primary} size={24} />
+          </TouchableOpacity>
         )}
-      />
-    </>
+        
+        <TouchableOpacity style={[styles.actionButton, styles.whatsappButton]} onPress={handleOpenWhatsapp}>
+          <Phone color="#FFF" size={20} />
+          <Text style={styles.whatsappText}>Entrar em Contato</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
-// Estilos
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white', paddingBottom: 60, marginBottom: 75 },
-  headerImageContainer: { height: 250, backgroundColor: '#E5E7EB' },
-  headerImage: { width: '100%', height: '100%' },
-  headerOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'space-between' },
-  headerControls: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 50 },
-  iconButton: { padding: 10, bottom: 30, paddingBottom: 20 },
-  titleBox: { backgroundColor: 'rgba(0,0,0,0.5)', padding: 16, margin: 16, borderRadius: 12 },
-  name: { fontSize: 28, fontWeight: 'bold', color: 'white' },
-  titleInfoRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  rating: { color: 'white', fontWeight: 'bold', marginLeft: 4 },
-  categoryBadge: { backgroundColor: 'hsla(0, 0%, 100%, 0.20)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginLeft: 8 },
-  categoryBadgeText: { color: 'white', fontSize: 12 },
-  actionsContainer: { flexDirection: 'row', padding: 16, gap: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  buttonPrimary: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#3B82F6', padding: 12, borderRadius: 8 },
-  buttonPrimaryText: { color: 'white', fontWeight: 'bold', marginLeft: 8 },
-  buttonSecondary: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F3F4F6', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#E5E7EB' },
-  buttonSecondaryText: { color: '#374151', fontWeight: 'bold', marginLeft: 8 },
-  content: { paddingVertical: 16, paddingBottom: 100 },
-  section: { marginBottom: 16, padding: 18, backgroundColor: '#F9FAFB', borderRadius: 10, borderWidth: 1, borderColor: '#F3F4F6', marginHorizontal: 16, paddingBottom: 30 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#1F2937', marginBottom: 12 },
-  description: { fontSize: 16, lineHeight: 24, color: '#374151' },
-  infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 4 },
-  infoText: { marginLeft: 12, fontSize: 16, color: '#4B5563' },
-  servicesContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' },
-  serviceTag: { backgroundColor: '#E0F2FE', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 },
-  serviceTagText: { color: '#0284C7', fontWeight: '500' },
-  galleryImage: { width: 120, height: 120, borderRadius: 12, backgroundColor: '#E5E7EB', marginRight: 12, borderWidth: 1, borderColor: '#E5E7EB' },
-  footer: { height: 80, width: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' },
-  footerText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  container: {
+    flex: 1,
+    backgroundColor: '#FFF',
+  },
+  imageContainer: {
+    height: 300,
+    width: '100%',
+    position: 'relative',
+  },
+  coverImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  imageGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 160,
+  },
+  headerButtons: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 40,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    zIndex: 10,
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerInfo: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+  },
+  categoryBadge: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  categoryText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  title: {
+    color: '#FFF',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingText: {
+    color: '#FBBF24',
+    fontWeight: '600',
+  },
+  content: {
+    padding: 20,
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    marginTop: -20, // Sobrepõe ligeiramente a imagem
+  },
+  statusCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceHighlight,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 24,
+  },
+  statusTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+  },
+  statusText: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    marginBottom: 12,
+  },
+  description: {
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+    lineHeight: 24,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  locationText: {
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+  },
+  galleryImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 12,
+    marginRight: 12,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFF',
+    padding: 16,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  instaButton: {
+    width: 56,
+    backgroundColor: theme.colors.surfaceHighlight,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  whatsappButton: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: '#25D366', // Cor oficial WhatsApp
+  },
+  whatsappText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

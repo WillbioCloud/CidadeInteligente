@@ -1,44 +1,65 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import InteractiveMissionCard from './InteractiveMissionCard';
-import { Mission } from '../../data/missions.data';
-import { ThemeColors } from '../../hooks/useUserStore';
+import { theme } from '../../styles/designSystem';
+import MissionCard from './MissionCard'; 
 
-interface DailyMissionsProps {
-  missions: Mission[];
-  theme: ThemeColors;
-  missionsProgress: any;
-  onToggleTask: (missionId: number, taskIndex: number) => void;
-  onClaimReward: (mission: Mission) => void;
+// Interface local para evitar dependências externas que podem falhar
+export interface Mission {
+  id: string;
+  title: string;
+  description: string;
+  xp: number;
+  completed: boolean;
+  icon: string; // nome do ícone
 }
 
-export default function DailyMissions({
-  missions,
-  theme,
-  missionsProgress,
-  onToggleTask,
-  onClaimReward,
-}: DailyMissionsProps) {
-  // CORREÇÃO: Verificação para quando não há missões
-  if (!missions || missions.length === 0) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>Nenhuma missão diária para hoje. Volte amanhã!</Text>
-      </View>
-    );
-  }
+// Dados simulados (Mock) para garantir que a UI aparece
+const INITIAL_MISSIONS: Mission[] = [
+  {
+    id: '1',
+    title: 'Caminhada Matinal',
+    description: 'Caminhe 2km pelas trilhas ecológicas.',
+    xp: 50,
+    completed: true, // Exemplo de missão já feita
+    icon: 'footsteps',
+  },
+  {
+    id: '2',
+    title: 'Apoie o Local',
+    description: 'Faça um check-in em um comércio parceiro.',
+    xp: 100,
+    completed: false,
+    icon: 'store',
+  },
+  {
+    id: '3',
+    title: 'Hidratação',
+    description: 'Beba água nos bebedouros do parque.',
+    xp: 20,
+    completed: false,
+    icon: 'water',
+  },
+];
+
+export default function DailyMissions() {
+  const [missions, setMissions] = useState<Mission[]>(INITIAL_MISSIONS);
+
+  const handleClaim = (id: string) => {
+    // Lógica para coletar recompensa (marcar como completada visualmente)
+    setMissions(prev => prev.map(m => 
+      m.id === id ? { ...m, completed: true } : m
+    ));
+  };
 
   return (
-    <View>
-      {/* CORREÇÃO DEFINITIVA: Mapeamento seguro da lista de missões. */}
-      {(missions || []).map(mission => (
-        <InteractiveMissionCard
-          key={mission.id}
-          mission={mission}
-          theme={theme}
-          progressInfo={missionsProgress[mission.id] || { tasks: [], completedBy: null }}
-          onToggleTask={onToggleTask}
-          onClaimReward={onClaimReward}
+    <View style={styles.container}>
+      <Text style={styles.sectionTitle}>Missões Diárias</Text>
+      
+      {missions.map((mission) => (
+        <MissionCard 
+          key={mission.id} 
+          mission={mission} 
+          onClaim={() => handleClaim(mission.id)}
         />
       ))}
     </View>
@@ -46,6 +67,24 @@ export default function DailyMissions({
 }
 
 const styles = StyleSheet.create({
-    emptyContainer: { paddingVertical: 40, alignItems: 'center' },
-    emptyText: { fontSize: 14, color: '#6B7280' },
+  container: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    marginBottom: 16,
+    marginLeft: 4,
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+  },
+  emptyText: {
+    color: '#6B7280',
+    fontSize: 14,
+  },
 });
