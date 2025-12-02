@@ -1,28 +1,28 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { CheckCircle, Circle, Gift } from 'lucide-react-native';
+import { CheckCircle, Circle, Gift, QrCode } from 'lucide-react-native';
 import { theme } from '../../styles/designSystem';
 
-// Interface compatível com o que definimos em DailyMissions
-interface Mission {
+export interface Mission {
   id: string;
   title: string;
   description: string;
   xp: number;
   completed: boolean;
   icon: string;
+  requiresValidation?: boolean; // Novo campo
 }
 
 interface MissionCardProps {
   mission: Mission;
-  onClaim: () => void;
+  onPress: () => void;
 }
 
-export default function MissionCard({ mission, onClaim }: MissionCardProps) {
+export default function MissionCard({ mission, onPress }: MissionCardProps) {
   return (
     <TouchableOpacity 
       style={[styles.card, mission.completed && styles.cardCompleted]} 
-      onPress={onClaim}
+      onPress={onPress}
       activeOpacity={0.8}
       disabled={mission.completed}
     >
@@ -38,7 +38,17 @@ export default function MissionCard({ mission, onClaim }: MissionCardProps) {
         <Text style={[styles.title, mission.completed && styles.textCompleted]}>
           {mission.title}
         </Text>
-        <Text style={styles.description}>{mission.description}</Text>
+        <Text style={styles.description} numberOfLines={2}>
+          {mission.description}
+        </Text>
+        
+        {/* Badge de validação se necessário */}
+        {!mission.completed && mission.requiresValidation && (
+          <View style={styles.validationBadge}>
+            <QrCode size={12} color={theme.colors.secondary} />
+            <Text style={styles.validationText}>Requer Código</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.rewardContainer}>
@@ -47,7 +57,7 @@ export default function MissionCard({ mission, onClaim }: MissionCardProps) {
         ) : (
           <View style={styles.xpBadge}>
             <Gift size={14} color="#FFF" />
-            <Text style={styles.xpText}>+{mission.xp} XP</Text>
+            <Text style={styles.xpText}>+{mission.xp}</Text>
           </View>
         )}
       </View>
@@ -95,6 +105,23 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 12,
     color: theme.colors.text.secondary,
+    marginBottom: 4,
+  },
+  validationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    gap: 4,
+    marginTop: 4,
+  },
+  validationText: {
+    fontSize: 10,
+    color: theme.colors.secondary,
+    fontWeight: '600',
   },
   rewardContainer: {
     marginLeft: 12,

@@ -12,13 +12,12 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Heart, MessageCircle, Share2, Calendar, Clock } from 'lucide-react-native';
+import { Heart, MessageCircle, Share2, Calendar } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { theme } from '../../styles/designSystem';
 import { formatTimeAgo } from '../../utils/formatTimeAgo';
 import { FeedStackParamList } from '../../navigation/types';
 
-// Tipagem da navegação
 type FeedScreenNavigationProp = StackNavigationProp<FeedStackParamList, 'FeedList'>;
 
 interface FeedPost {
@@ -26,7 +25,7 @@ interface FeedPost {
   title: string;
   content: string;
   image_url?: string;
-  created_at: string;
+  published_at: string; // <-- CORRIGIDO
   likes_count: number;
   comments_count: number;
   author_name?: string;
@@ -41,11 +40,10 @@ export default function FeedScreen() {
 
   const fetchPosts = async () => {
     try {
-      // Busca posts da tabela 'news_feed'
       const { data, error } = await supabase
         .from('news_feed')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('published_at', { ascending: false }); // <-- CORRIGIDO AQUI
 
       if (error) throw error;
 
@@ -94,7 +92,7 @@ export default function FeedScreen() {
           </View>
           <View>
             <Text style={styles.authorName}>{item.author_name || 'Administração'}</Text>
-            <Text style={styles.timeAgo}>{formatTimeAgo(item.created_at)}</Text>
+            <Text style={styles.timeAgo}>{formatTimeAgo(item.published_at)}</Text> 
           </View>
         </View>
         {item.category && (
@@ -178,146 +176,28 @@ export default function FeedScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  header: {
-    backgroundColor: '#FFFFFF',
-    paddingTop: 50, // Ajuste para status bar
-    paddingBottom: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.text.primary,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  listContent: {
-    padding: 16,
-    paddingBottom: 100, // Espaço para não ficar atrás da tab bar
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  authorInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  avatarPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.primaryBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: theme.colors.primary,
-  },
-  authorName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.text.primary,
-  },
-  timeAgo: {
-    fontSize: 12,
-    color: theme.colors.text.tertiary,
-  },
-  categoryBadge: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  categoryText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: theme.colors.text.secondary,
-    textTransform: 'uppercase',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.text.primary,
-    marginBottom: 8,
-  },
-  preview: {
-    fontSize: 14,
-    color: theme.colors.text.secondary,
-    lineHeight: 22,
-    marginBottom: 12,
-  },
-  postImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 12,
-    backgroundColor: '#F3F4F6',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  statButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statText: {
-    fontSize: 14,
-    color: theme.colors.text.secondary,
-    fontWeight: '500',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 60,
-    paddingHorizontal: 32,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.text.secondary,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: theme.colors.text.tertiary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  header: { backgroundColor: '#FFFFFF', paddingTop: 50, paddingBottom: 16, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: theme.colors.text.primary },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  listContent: { padding: 16, paddingBottom: 100 },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 16, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  authorInfo: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  avatarPlaceholder: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.colors.primaryBg, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 16, fontWeight: 'bold', color: theme.colors.primary },
+  authorName: { fontSize: 14, fontWeight: '600', color: theme.colors.text.primary },
+  timeAgo: { fontSize: 12, color: theme.colors.text.tertiary },
+  categoryBadge: { backgroundColor: '#F3F4F6', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  categoryText: { fontSize: 10, fontWeight: '600', color: theme.colors.text.secondary, textTransform: 'uppercase' },
+  title: { fontSize: 18, fontWeight: 'bold', color: theme.colors.text.primary, marginBottom: 8 },
+  preview: { fontSize: 14, color: theme.colors.text.secondary, lineHeight: 22, marginBottom: 12 },
+  postImage: { width: '100%', height: 200, borderRadius: 12, marginBottom: 12, backgroundColor: '#F3F4F6' },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
+  statsRow: { flexDirection: 'row', gap: 16 },
+  statButton: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  statText: { fontSize: 14, color: theme.colors.text.secondary, fontWeight: '500' },
+  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingTop: 60, paddingHorizontal: 32 },
+  emptyTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.text.secondary, marginTop: 16, marginBottom: 8 },
+  emptySubtitle: { fontSize: 14, color: theme.colors.text.tertiary, textAlign: 'center', lineHeight: 20 },
 });

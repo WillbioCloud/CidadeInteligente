@@ -1,30 +1,26 @@
-// src/components/home/WeatherCard.tsx (VERSÃO DINÂMICA)
-
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Sun, Cloud, CloudRain, CloudSnow, Wind, Droplets, CloudLightning, CloudDrizzle } from 'lucide-react-native';
 
-// Função para escolher o ícone certo com base no código da API
 const getWeatherIcon = (iconCode: string) => {
-    if (!iconCode) return <Sun size={28} color="#F59E0B" />; // Ícone padrão
-    const code = iconCode.substring(0, 2); // ex: '01d' -> '01'
+    if (!iconCode) return <Sun size={28} color="#F59E0B" />;
+    const code = iconCode.substring(0, 2);
     switch (code) {
-        case '01': return <Sun size={28} color="#F59E0B" />; // Céu limpo
-        case '02': case '03': case '04': return <Cloud size={28} color="#A0AEC0" />; // Nuvens
-        case '09': return <CloudDrizzle size={28} color="#4A5568" />; // Garôa
-        case '10': return <CloudRain size={28} color="#4A5568" />; // Chuva
-        case '11': return <CloudLightning size={28} color="#4A5568" />; // Tempestade
-        case '13': return <CloudSnow size={28} color="#A0AEC0" />; // Neve
+        case '01': return <Sun size={28} color="#F59E0B" />;
+        case '02': case '03': case '04': return <Cloud size={28} color="#A0AEC0" />;
+        case '09': return <CloudDrizzle size={28} color="#4A5568" />;
+        case '10': return <CloudRain size={28} color="#4A5568" />;
+        case '11': return <CloudLightning size={28} color="#4A5568" />;
+        case '13': return <CloudSnow size={28} color="#A0AEC0" />;
         default: return <Cloud size={28} color="#A0AEC0" />;
     }
 }
 
-export const WeatherCard = ({ weatherData }) => {
-  // Se os dados ainda não carregaram, mostra um spinner
+export default function WeatherCard({ weatherData }: { weatherData: any }) {
   if (!weatherData) {
     return (
       <View style={[styles.card, styles.centered]}>
-        <ActivityIndicator color="#4A90E2" />
+        <ActivityIndicator color="#059669" />
       </View>
     );
   }
@@ -51,7 +47,7 @@ export const WeatherCard = ({ weatherData }) => {
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   card: { flex: 1, backgroundColor: 'white', borderRadius: 20, padding: 16, height: 140, justifyContent: 'space-between', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10 },

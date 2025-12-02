@@ -1,67 +1,94 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { theme } from '../../styles/designSystem';
-import MissionCard from './MissionCard'; 
+import MissionCard, { Mission } from './MissionCard';
+import MissionValidationModal from './MissionValidationModal';
 
-// Interface local para evitar dependências externas que podem falhar
-export interface Mission {
-  id: string;
-  title: string;
-  description: string;
-  xp: number;
-  completed: boolean;
-  icon: string; // nome do ícone
-}
-
-// Dados simulados (Mock) para garantir que a UI aparece
 const INITIAL_MISSIONS: Mission[] = [
   {
     id: '1',
-    title: 'Caminhada Matinal',
-    description: 'Caminhe 2km pelas trilhas ecológicas.',
-    xp: 50,
-    completed: true, // Exemplo de missão já feita
-    icon: 'footsteps',
+    title: 'Check-in no Parque',
+    description: 'Visite o Parque Linear e escaneie o código na entrada.',
+    xp: 150,
+    completed: false,
+    icon: 'map-pin',
+    requiresValidation: true, // Esta missão requer QR Code
   },
   {
     id: '2',
-    title: 'Apoie o Local',
-    description: 'Faça um check-in em um comércio parceiro.',
+    title: 'Cliente Fiel',
+    description: 'Faça uma compra em um comércio local parceiro.',
     xp: 100,
     completed: false,
-    icon: 'store',
+    icon: 'shopping-bag',
+    requiresValidation: true,
   },
   {
     id: '3',
-    title: 'Hidratação',
-    description: 'Beba água nos bebedouros do parque.',
+    title: 'Hidratação Diária',
+    description: 'Beba água e marque aqui para ganhar pontos.',
     xp: 20,
     completed: false,
-    icon: 'water',
+    icon: 'droplet',
+    requiresValidation: false, // Esta é automática (apenas clique)
   },
 ];
 
 export default function DailyMissions() {
   const [missions, setMissions] = useState<Mission[]>(INITIAL_MISSIONS);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
-  const handleClaim = (id: string) => {
-    // Lógica para coletar recompensa (marcar como completada visualmente)
+  const handleMissionPress = (mission: Mission) => {
+    if (mission.requiresValidation) {
+      setSelectedMission(mission);
+      setModalVisible(true);
+    } else {
+      // Se não requer validação, completa direto
+      completeMission(mission.id);
+    }
+  };
+
+  const completeMission = (id: string) => {
     setMissions(prev => prev.map(m => 
       m.id === id ? { ...m, completed: true } : m
     ));
+    Alert.alert('Parabéns!', 'Você completou a missão e ganhou XP!');
+  };
+
+  const validateCode = async (code: string): Promise<boolean> => {
+    // Simulação de validação no backend
+    // Aqui você chamaria: await supabase.rpc('validate_mission_code', { code })
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Para teste, qualquer código com "OK" é válido
+    if (code.includes('OK') || code.length > 3) {
+      if (selectedMission) completeMission(selectedMission.id);
+      return true;
+    }
+    return false;
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Missões Diárias</Text>
+      <Text style={styles.sectionTitle}>Missões Disponíveis</Text>
       
       {missions.map((mission) => (
         <MissionCard 
           key={mission.id} 
           mission={mission} 
-          onClaim={() => handleClaim(mission.id)}
+          onPress={() => handleMissionPress(mission)}
         />
       ))}
+
+      {selectedMission && (
+        <MissionValidationModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          onValidate={validateCode}
+          missionTitle={selectedMission.title}
+        />
+      )}
     </View>
   );
 }
@@ -76,15 +103,5 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
     marginBottom: 16,
     marginLeft: 4,
-  },
-  emptyContainer: {
-    padding: 20,
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-  },
-  emptyText: {
-    color: '#6B7280',
-    fontSize: 14,
   },
 });

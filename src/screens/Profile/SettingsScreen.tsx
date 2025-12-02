@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  Switch, 
+  TouchableOpacity, 
+  Alert, 
+  ScrollView,
+  Platform // <--- ADICIONADO AQUI
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Bell, Lock, Moon, Trash2, ArrowLeft, ChevronRight } from 'lucide-react-native';
 import { useUserStore } from '../../hooks/useUserStore';
@@ -24,12 +33,8 @@ export default function SettingsScreen() {
           style: 'destructive', 
           onPress: async () => {
             try {
-              // Chama a Edge Function para eliminar o utilizador (se configurada)
-              // ou apenas faz logout por enquanto se não tiveres a função backend pronta
               const { error } = await supabase.functions.invoke('delete-user');
-              
               if (error) throw error;
-
               await signOut();
               Alert.alert('Conta Eliminada', 'A sua conta foi removida com sucesso.');
             } catch (error) {
@@ -113,7 +118,7 @@ export default function SettingsScreen() {
           <SettingItem 
             icon={Lock} 
             label="Alterar Senha" 
-            onPress={() => navigation.navigate('ForgotPassword')} // Reutilizamos a tela de reset
+            onPress={() => navigation.navigate('ForgotPassword')} 
             color="#10B981"
           />
         </View>
@@ -150,7 +155,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
-    paddingTop: 50, // Ajuste para status bar
+    paddingTop: Platform.OS === 'ios' ? 60 : 40, 
   },
   backButton: {
     padding: 8,

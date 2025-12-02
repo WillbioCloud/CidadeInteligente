@@ -1,97 +1,81 @@
-// src/components/sections/ResidentFeatures.tsx
-
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Bus, Calendar, Heart, MapPin, Clock, ChevronRight, Building } from '../Icons';
+import { Bus, Map, Heart, Calendar, MapPin, MoreHorizontal } from 'lucide-react-native';
+import { theme } from '../../styles/designSystem';
 
-const features = [
-  { id: 'Transporte', icon: Bus, title: 'Horários de Ônibus', screen: 'Transport' },
-  { id: 'ReservarQuadras', icon: Calendar, title: 'Reservar Quadras', screen: 'CourtScheduling' },
-  { id: 'Saude', icon: Heart, title: 'Saúde e Bem-estar', screen: 'Health' },
-  // AQUI ESTÁ A MUDANÇA: Navega para a rota "Mapa" que adicionamos no HomeStack
-  { id: 'MapaLocal', icon: MapPin, title: 'Mapa Local', screen: 'Mapa' }, 
-  { id: 'Empreendimentos', icon: Building, title: 'Empreendimentos da FBZ', screen: 'Empreendimentos' },
-  { id: 'Funcionamento', icon: Clock, title: 'Horário de Funcionamento', screen: 'OperatingHours' },
+const FEATURES = [
+  { id: 'transport', label: 'Ônibus', icon: Bus, route: 'Transport', color: '#3B82F6' },
+  { id: 'map', label: 'Mapa', icon: Map, route: 'Mapa', color: '#10B981' },
+  { id: 'health', label: 'Saúde', icon: Heart, route: 'Health', color: '#EF4444' },
+  { id: 'scheduling', label: 'Quadras', icon: Calendar, route: 'CourtScheduling', color: '#F59E0B' },
+  { id: 'explore', label: 'Plantas', icon: MapPin, route: 'ExploreMap', color: '#8B5CF6' },
+  { id: 'more', label: 'Mais', icon: MoreHorizontal, route: 'More', color: '#6B7280' },
 ];
 
 export const ResidentFeatures = () => {
-  const navigation = useNavigation();
-
-  const handlePress = (screen) => {
-    navigation.navigate(screen);
-  };
+  const navigation = useNavigation<any>();
 
   return (
-    <View style={styles.section}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Funcionalidades</Text>
-          <Text style={styles.subtitle}>Tudo que você precisa no seu dia a dia</Text>
-        </View>
-        <TouchableOpacity style={styles.seeAllButton} onPress={() => navigation.navigate('More')}>
-          <Text style={styles.seeAllText}>Ver todos</Text>
-          <ChevronRight size={16} color="#339949ff" />
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.grid}>
-        {features.map(feature => {
-          const Icon = feature.icon;
+    <View style={styles.container}>
+      <Text style={styles.title}>Serviços</Text>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        contentContainerStyle={styles.grid}
+      >
+        {FEATURES.map((item) => {
+          const Icon = item.icon;
           return (
-            <TouchableOpacity key={feature.id} style={styles.card} onPress={() => handlePress(feature.screen)}>
-              <Icon size={28} color="#339949ff" />
-              <Text style={styles.cardText}>{feature.title}</Text>
+            <TouchableOpacity 
+              key={item.id} 
+              style={styles.item} 
+              onPress={() => navigation.navigate(item.route)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: `${item.color}15` }]}>
+                <Icon size={28} color={item.color} />
+              </View>
+              <Text style={styles.label}>{item.label}</Text>
             </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  section: { 
-    marginBottom: 24,
-    paddingHorizontal: 16,
+  container: {
+    marginTop: 20,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    marginLeft: 20,
     marginBottom: 16,
   },
-  seeAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  seeAllText: {
-    color: '#339949ff',
-    fontWeight: '600',
-    marginRight: 4,
-  },
-  title: { fontSize: 20, fontWeight: 'bold' },
-  subtitle: { color: 'gray' },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    gap: 12,
   },
-  card: {
-    width: '48%',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
+  item: {
     alignItems: 'center',
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    width: 80,
+    gap: 8,
   },
-  cardText: {
-    marginTop: 8,
+  iconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  label: {
+    fontSize: 12,
     fontWeight: '600',
+    color: theme.colors.text.secondary,
     textAlign: 'center',
   },
 });
